@@ -46,6 +46,7 @@ layout_mode = 2
 text = "Editor:"
 
 [node name="EditorsOptionButton" type="OptionButton" parent="VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
 layout_mode = 2
 flat = true
 

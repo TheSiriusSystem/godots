@@ -7,7 +7,7 @@ signal imported(project_path, editor_path, and_edit)
 @onready var _browse_project_path_button: Button = %BrowseProjectPathButton
 @onready var _browse_project_path_dialog: FileDialog = $BrowseProjectPathDialog
 @onready var _project_path_edit: LineEdit = %ProjectPathEdit
-@onready var _editors_option_button: OptionButton = $VBoxContainer/HBoxContainer2/EditorsOptionButton
+@onready var _editors_option_button: OptionButton = %EditorsOptionButton
 @onready var _version_hint_value = %VersionHintValue
 @onready var _version_hint_container = %VersionHintContainer
 
