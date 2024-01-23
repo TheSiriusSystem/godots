@@ -94,7 +94,7 @@ var DEFAULT_EDITOR_TAGS = ConfigFileValue.new(
 	_cfg_auto_save, 
 	"app", 
 	"default_editor_tags",
-	["dev", "rc", "alpha", "4.x", "3.x", "stable", "mono"]
+	["1.x", "2.x", "3.x", "4.x", "stable", "dev", "alpha", "beta", "rc", "mono"]
 ): 
 	set(_v): _readonly()
 
@@ -103,7 +103,7 @@ var DEFAULT_PROJECT_TAGS = ConfigFileValue.new(
 	_cfg_auto_save, 
 	"app", 
 	"default_project_tags",
-	[]
+	["game", "application", "plugin"]
 ): 
 	set(_v): _readonly()
 
