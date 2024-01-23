@@ -22,9 +22,9 @@ func _post_add(item_data, item_control):
 
 
 func _item_comparator(a, b):
-	if a.favorite && !b.favorite:
+	if a.favorite and not b.favorite:
 		return true
-	if b.favorite && !a.favorite:
+	if b.favorite and not a.favorite:
 		return false
 	match _sort_option_button.selected:
 		0: return a.last_modified > b.last_modified

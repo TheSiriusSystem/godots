@@ -99,7 +99,7 @@ class SrcFileSystem extends Src:
 		var json = self.async_all()
 		for el in json:
 			var release = Release.new(el)
-			if !release.is_prerelease and !release.is_draft:
+			if not release.is_prerelease and not release.is_draft:
 				return el
 		return null
 	
