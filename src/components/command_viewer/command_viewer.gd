@@ -188,14 +188,15 @@ class Command:
 
 class Commands:
 	func all() -> Array[Command]:
+		push_warning("CommandViewer.Commands.all() is not implemented.")
 		return []
 	
 	func add(name: String, args: PackedStringArray, is_local: bool, allowed_actions: PackedStringArray) -> Command:
-		assert(true, "Not implemented")
+		push_warning("CommandViewer.Commands.add(name, args, is_local, allowed_actions) is not implemented.")
 		return null
 	
 	func remove(name: String, is_local: bool) -> void:
-		pass
+		push_warning("CommandViewer.Commands.remove(name, is_local) is not implemented.")
 
 
 class CustomCommandsSource:
@@ -204,10 +205,10 @@ class CustomCommandsSource:
 		set(value): _set_custom_commands(value)
 	
 	func _get_custom_commands():
-		pass
+		push_warning("CommandViewer.CustomCommandsSource._get_custom_commands() is not implemented.")
 	
-	func _set_custom_commands(value):
-		pass
+	func _set_custom_commands(_value):
+		push_warning("CommandViewer.CustomCommandsSource._set_custom_commands(value) is not implemented.")
 
 
 class CommandsInMemory extends CommandsWrap:
@@ -306,7 +307,7 @@ class CommandsWithBasic extends CommandsWrap:
 		_basic = basic
 	
 	func all() -> Array[Command]:
-		var result: Array[Command]
+		var result: Array[Command] = []
 		result.append_array(_basic)
 		result.append_array(super.all())
 		return result
@@ -323,7 +324,7 @@ class CommandsGeneric extends Commands:
 		_is_local = is_local
 	
 	func all() -> Array[Command]:
-		var result: Array[Command]
+		var result: Array[Command] = []
 		var commands = _custom_commands_source.custom_commands
 		result.append_array(commands.map(func(x): return _to_command(
 			x.name,
@@ -356,7 +357,7 @@ class CommandsGeneric extends Commands:
 			_custom_commands_source.custom_commands = commands
 			return _to_command(name, args, allowed_actions, is_local)
 		else:
-			assert(true, "Not implemented")
+			push_warning("CommandViewer.CommandsGeneric.add(name, args, is_local = true, allowed_actions) is not implemented.")
 			return null
 	
 	func remove(name: String, is_local: bool) -> void:
@@ -365,7 +366,7 @@ class CommandsGeneric extends Commands:
 			commands = commands.filter(func(x): return x.name != name)
 			_custom_commands_source.custom_commands = commands
 		else:
-			assert(true, "Not implemented")
+			push_warning("CommandViewer.CommandsGeneric.remove(name, is_local = true) is not implemented.")
 	
 	func _has_by_name(name: String):
 		return len(
