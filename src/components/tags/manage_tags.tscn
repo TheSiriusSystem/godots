@@ -16,10 +16,12 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = 287.0
 offset_bottom = 145.0
+theme_override_constants/separation = 1
 
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
+text = "Item Tags"
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="VBoxContainer"]
@@ -54,10 +56,14 @@ layout_mode = 2
 
 [node name="CreateTagDialog" type="ConfirmationDialog" parent="."]
 title = "Create New Tag"
+size = Vector2i(407, 139)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CreateTagDialog"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 399.0
+offset_bottom = 90.0
+theme_override_constants/separation = 1
 
 [node name="Label" type="Label" parent="CreateTagDialog/VBoxContainer"]
 layout_mode = 2
