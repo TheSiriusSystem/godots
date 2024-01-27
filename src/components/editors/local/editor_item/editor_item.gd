@@ -43,6 +43,7 @@ func init(item: LocalEditors.Item):
 	)
 	
 	_title_label.text = item.name
+	update_tooltip()
 	_path_label.text = item.path
 	_favorite_button.button_pressed = item.favorite
 	_tag_container.set_tags(item.tags)
@@ -50,9 +51,9 @@ func init(item: LocalEditors.Item):
 	
 	if item.is_self_contained():
 		_editor_features.text = tr("Self-contained")
-		_editor_features.show()
+		_editor_features.visible = true
 	else:
-		_editor_features.hide()
+		_editor_features.visible = false
 
 	_sort_data.favorite = item.favorite
 	_sort_data.name = item.name
@@ -144,6 +145,14 @@ func init(item: LocalEditors.Item):
 	)
 
 
+func update_tooltip():
+	var version_string = utils.get_version_string(_title_label.text)
+	if not version_string.is_empty():
+		tooltip_text = "%s: %s" % [tr("detected version"), version_string]
+	else:
+		tooltip_text = ""
+
+
 func _on_run_editor(item):
 	item.as_project_manager_process().create_process()
 	AutoClose.close_if_should()
@@ -158,6 +167,7 @@ func _on_rename(item):
 		item.name = new_name
 		item.version_hint = version_hint
 		_title_label.text = item.name
+		update_tooltip()
 		edited.emit()
 	)
 
@@ -174,7 +184,7 @@ func _on_add_extra_arguments(item):
 func _on_remove(item):
 	var confirmation_dialog = ConfirmationDialogAutoFree.new()
 	confirmation_dialog.ok_button_text = tr("Remove")
-	confirmation_dialog.get_label().hide()
+	confirmation_dialog.get_label().visible = false
 	
 	var label = Label.new()
 	label.text = tr("Are you sure to remove the editor from the list?")
@@ -182,7 +192,7 @@ func _on_remove(item):
 	var warning = Label.new()
 	warning.text = tr("NOTE: the action will remove the parent folder of the editor with all the content.") + "\n%s" % item.path.get_base_dir()
 	warning.self_modulate = get_theme_color("warning_color", "Editor")
-	warning.hide()
+	warning.visible = false
 	
 	var checkbox = CheckBox.new()
 	checkbox.text = tr("remove also from the file system")
