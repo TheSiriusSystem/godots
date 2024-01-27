@@ -45,13 +45,13 @@ func raise(commands: Commands, command_creation_allowed=false):
 
 func _update_view(commands: Commands, command_creation_allowed=false):
 	if command_creation_allowed:
-		_create_new_command_btn.show()
+		_create_new_command_btn.visible = true
 	else:
-		_create_new_command_btn.hide()
+		_create_new_command_btn.visible = false
 
 	for c in %VBoxContainer.get_children():
 		if c.has_method("hide"):
-			c.hide()
+			c.visible = false
 		c.queue_free()
 	
 	for command in commands.all():

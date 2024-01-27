@@ -14,7 +14,7 @@ func render(page, page_count, page_len, total_items):
 
 func clear():
 	if is_instance_valid(_current_pages):
-		_current_pages.hide()
+		_current_pages.visible = false
 		_current_pages.queue_free()
 
 

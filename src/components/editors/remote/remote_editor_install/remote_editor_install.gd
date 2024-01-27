@@ -36,7 +36,7 @@ func init(editor_name, editor_exec_path):
 	Output.push("Installing editor: %s" % editor_exec_path)
 	_dir_content = edir.list_recursive(editor_exec_path)
 	_editor_name_edit.text = editor_name
-	_select_exec_file_tree.show()
+	_select_exec_file_tree.visible = true
 	_setup_editor_select_tree()
 
 
