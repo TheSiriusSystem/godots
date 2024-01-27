@@ -10,7 +10,7 @@ func _init():
 
 func clear():
 	if is_instance_valid(btn):
-		btn.hide()
+		btn.visible = false
 		btn.queue_free()
 
 

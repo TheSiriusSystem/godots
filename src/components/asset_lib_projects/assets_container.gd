@@ -36,7 +36,7 @@ func fill(items: Array[AssetLib.Item]):
 func clear():
 	for c in get_children():
 		if c.has_method("hide"):
-			c.hide()
+			c.visible = false
 		c.queue_free()
 
 

@@ -141,9 +141,9 @@ func _ready():
 	, CONNECT_DEFERRED & CONNECT_ONE_SHOT)
 	%HideRestartButton.flat = true
 	%HideRestartButton.pressed.connect(func():
-		%RestartContainer.hide()
+		%RestartContainer.visible = false
 	)
-	%RestartContainer.hide()
+	%RestartContainer.visible = false
 	
 	%OpenConfigFileButton.pressed.connect(func():
 		var config_path = ProjectSettings.globalize_path(Config.APP_CONFIG_PATH.get_base_dir())
@@ -228,7 +228,7 @@ func SettingFiltered(origin: Setting, filter):
 
 
 func SettingRestartRequired(origin: Setting):
-	return origin.on_value_changed(func(_a): %RestartContainer.show())
+	return origin.on_value_changed(func(_a): %RestartContainer.visible = true)
 
 
 class Category:

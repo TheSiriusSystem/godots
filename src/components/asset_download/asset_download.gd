@@ -57,7 +57,7 @@ func _ready() -> void:
 		
 		if error_text:
 			popup_error_dialog(tr("Download Error") + ":\n" + error_text)
-			_retry_button.show()
+			_retry_button.visible = true
 			_status.text = status
 			download_failed.emit(response_code)
 		else:
@@ -75,7 +75,7 @@ func start(url, target_abs_dir, file_name, title_name=null):
 	_host = url
 	_retry_callback = func(): start(url, target_abs_dir, file_name, title_name)
 	
-	_retry_button.hide()
+	_retry_button.visible = false
 	_install_button.disabled = true
 	_progress_bar.modulate = Color(1, 1, 1, 1)
 	_title_label.text = file_name if title_name == null else title_name

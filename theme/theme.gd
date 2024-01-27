@@ -401,7 +401,7 @@ static func create_editor_theme(p_theme):
 #	var readonly_warning_color = error_color.lerp(dark_theme ? Color(0, 0, 0) : Color(1, 1, 1), 0.25)
 	var readonly_warning_color = error_color.lerp(Color(0, 0, 0) if dark_theme else Color(1, 1, 1), 0.25)
 
-	if !dark_theme:
+	if not dark_theme:
 		# Darken some colors to be readable on a light background.
 		success_color = success_color.lerp(mono_color, 0.35)
 		warning_color = warning_color.lerp(mono_color, 0.35)
@@ -413,7 +413,7 @@ static func create_editor_theme(p_theme):
 	theme.set_color("property_color", "Editor", property_color)
 	theme.set_color("readonly_color", "Editor", readonly_color)
 
-	if !dark_theme:
+	if not dark_theme:
 		theme.set_color("highend_color", "Editor", Color.hex(0xad1128ff))
 	else:
 		theme.set_color("highend_color", "Editor", Color(1.0, 0.0, 0.0))
@@ -445,15 +445,15 @@ static func create_editor_theme(p_theme):
 #		var prev_icon_saturation = p_theme.get_color(StringName("icon_saturation"), StringName("Editor")).r
 #		var prev_gizmo_handle_scale = (float)p_theme.get_constant(StringName("gizmo_handle_scale"), StringName("Editor"))
 #
-#		keep_old_icons = (is_equal_approx(prev_scale, EDSCALE) &&
-#				is_equal_approx(prev_gizmo_handle_scale, gizmo_handle_scale) &&
-#				prev_dark_theme == dark_theme &&
-#				prev_accent_color == accent_color &&
+#		keep_old_icons = (is_equal_approx(prev_scale, EDSCALE) and
+#				is_equal_approx(prev_gizmo_handle_scale, gizmo_handle_scale) and
+#				prev_dark_theme == dark_theme and
+#				prev_accent_color == accent_color and
 #				prev_icon_saturation == icon_saturation)
 #
 #		const double prev_thumb_size = (double)p_theme.get_constant(StringName("thumb_size"), StringName("Editor"))
 #
-#		regenerate_thumb_icons = !is_equal_approx(prev_thumb_size, thumb_size)
+#		regenerate_thumb_icons = not is_equal_approx(prev_thumb_size, thumb_size)
 #	}
 
 	
@@ -1637,7 +1637,7 @@ static func create_editor_theme(p_theme):
 	var sm_margin_side = 10
 
 	var graphnode_bg = dark_color_3
-	if !dark_theme:
+	if not dark_theme:
 		graphnode_bg = prop_section_color
 
 	var graphsb = make_flat_stylebox(graphnode_bg.lerp(style_tree_bg.get_bg_color(), 0.3), gn_margin_side, 24, gn_margin_side, gn_margin_bottom, corner_width)

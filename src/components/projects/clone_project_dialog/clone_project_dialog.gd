@@ -54,7 +54,7 @@ func _do_clone(origin_repository, project_path):
 func _emit_cloned(err, output, path):
 	Output.push_array("Git executed with error code: %s" % err)
 	Output.push_array(output)
-	_cloning_window.hide()
+	_cloning_window.visible = false
 	
 	if err != OK:
 		_spawn_clone_alert(err)
@@ -81,7 +81,7 @@ func _spawn_clone_alert(err):
 
 
 func _spawn_unable_to_find_project_godot_alert():
-	_clone_failed_dialog.dialog_text = tr('Unable to find project.godot file.')
+	_clone_failed_dialog.dialog_text = tr('Unable to find project configuration file.')
 	_clone_failed_dialog.popup_centered()
 
 

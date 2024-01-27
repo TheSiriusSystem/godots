@@ -23,7 +23,7 @@ class Default extends I:
 	func async_load():
 		var json = await _src.async_all()
 		
-		var latest = {'value': null}
+		var latest = {"value": null}
 		var check_is_latest = func(release: Release):
 			if latest.value != null or release.is_draft or release.is_prerelease:
 				return
@@ -99,7 +99,7 @@ class SrcFileSystem extends Src:
 		var json = self.async_all()
 		for el in json:
 			var release = Release.new(el)
-			if !release.is_prerelease and !release.is_draft:
+			if not release.is_prerelease and not release.is_draft:
 				return el
 		return null
 	
@@ -124,7 +124,7 @@ class SrcGithub extends Src:
 		var json = await _get_json(Config.RELEASES_LATEST_API_ENDPOINT)
 		if not json is Dictionary:
 			return null
-		if json.get('message', '') == 'Not Found':
+		if json.get("message", "") == "Not Found":
 			return null
 		return json
 	
@@ -151,7 +151,7 @@ class Release:
 		get: return _json.name
 	
 	var tag_name: String:
-		get: return _json.get('tag_name', '')
+		get: return _json.get("tag_name", "")
 	
 	var tags: Array[String]:
 		get: return _get_tags()

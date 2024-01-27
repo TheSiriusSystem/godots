@@ -20,7 +20,8 @@ func _ready():
 
 func override_array(array: PackedStringArray):
 	for item in _items_vbox.get_children():
-		item.hide()
+		if item.has_method("hide"):
+			item.visible = false
 		item.queue_free()
 	
 	for el in array:
