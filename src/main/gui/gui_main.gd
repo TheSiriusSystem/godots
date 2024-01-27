@@ -25,7 +25,7 @@ func _ready():
 		if len(files) == 0:
 			return
 		var file = files[0].simplify_path()
-		if file.ends_with("project.godot"):
+		if utils.PROJECT_FILE_NAMES.find(file.get_file()):
 			_projects.import(file)
 		elif file.ends_with(".zip"):
 			var zip_reader = ZIPReader.new()
@@ -36,7 +36,7 @@ func _ready():
 			var has_project_godot_file = len(
 				Array(
 					zip_reader.get_files()
-				).map(func(x): return x.get_file() == "project.godot")
+				).map(func(x): return utils.PROJECT_FILE_NAMES.find(x.get_file()))
 			) > 0
 			if has_project_godot_file:
 				_projects.install_zip(
@@ -110,7 +110,7 @@ func _ready():
 	var projects_service = Projects.List.new(
 		Config.PROJECTS_CONFIG_PATH,
 		local_editors,
-		preload("res://assets/default_project_icon.svg")
+		preload("res://assets/default_project_icon_4.svg")
 	)
 	_on_exit_tree_callbacks.append(func(): local_editors.cleanup())
 	_on_exit_tree_callbacks.append(func(): projects_service.cleanup())
