@@ -11,7 +11,7 @@ func _init():
 	projects = Projects.List.new(
 		Config.PROJECTS_CONFIG_PATH,
 		editors,
-		preload("res://assets/default_project_icon.svg")
+		preload("res://assets/default_project_icon_4.svg")
 	)
 
 	editors.load()
