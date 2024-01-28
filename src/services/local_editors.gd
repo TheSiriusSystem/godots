@@ -60,9 +60,9 @@ class List extends RefCounted:
 		return all().filter(
 			func(x): return self.editor_is_valid(x.path)
 		).map(func(x: Item): return {
-			'label': x.name,
-			'path': x.path,
-			'version_hint': x.version_hint
+			"label": x.name,
+			"path": x.path,
+			"version_hint": x.version_hint
 		})
 	
 	func get_all_tags():
@@ -189,13 +189,6 @@ class Item extends Object:
 	func match_version_hint(hint, ignore_mono=false):
 		return VersionHint.are_equal(self.version_hint, hint, ignore_mono)
 	
-	func get_version() -> String:
-		var parsed = VersionHint.parse(version_hint)
-		if parsed.is_valid:
-			return parsed.version
-		else:
-			return ""
-	
 	func get_cfg_file_path() -> String:
 		var cfg_file_name = get_cfg_file_name()
 		if cfg_file_name.is_empty():
@@ -210,13 +203,10 @@ class Item extends Object:
 		return cfg_folder.path_join(cfg_file_name)
 	
 	func get_cfg_file_name() -> String:
-		var version = get_version()
-		if version.is_empty():
-			return ""
-		if version.begins_with("3"):
-			return "editor_settings-3.tres"
-		elif version.begins_with("4"):
-			return "editor_settings-4.tres"
+		var version = utils.extract_version_from_string(version_hint, true)
+		if version:
+			# Futureproofed for new major releases.
+			return "editor_settings-%s.tres" % str(version[0])
 		else:
 			return ""
 	
@@ -233,9 +223,9 @@ class Item extends Object:
 		var commands = _section.get_value("custom_commands", [])
 		if not _find_custom_command_by_name("Run", commands):
 			commands.append({
-				'name': 'Run',
-				'args': ['-p'],
-				'allowed_actions': [
+				"name": "Run",
+				"args": [],
+				"allowed_actions": [
 					CommandViewer.Actions.EXECUTE, 
 					CommandViewer.Actions.EDIT, 
 					CommandViewer.Actions.CREATE_PROCESS
