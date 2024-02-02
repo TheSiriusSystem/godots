@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0wusvkwaq8bo"]
+
+[ext_resource type="PackedScene" uid="uid://b2tm4lxm80sj0" path="res://src/components/editors/local/editor_item/rename_editor_dialog.tscn" id="1_fknax"]
+[ext_resource type="Script" path="res://src/components/projects/project_item/change_settings_dialog.gd" id="2_t1xh0"]
+
+[node name="ChangeSettingsDialog" instance=ExtResource("1_fknax")]
+title = "Change Settings"
+size = Vector2i(500, 313)
+script = ExtResource("2_t1xh0")
+
+[node name="VBoxContainer" parent="." index="3"]
+offset_bottom = 264.0
+
+[node name="Label3" type="Label" parent="VBoxContainer" index="2"]
+layout_mode = 2
+text = "Description:"
+
+[node name="TextEdit" type="TextEdit" parent="VBoxContainer" index="3"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+wrap_mode = 1

@@ -6,7 +6,7 @@ signal manage_tags_requested
 signal duplicate_requested
 signal tag_clicked(tag)
 
-@export var _rename_dialog_scene: PackedScene
+@export var _change_dialog_scene: PackedScene
 
 @onready var _path_label: Label = %PathLabel
 @onready var _title_label: Label = %TitleLabel
@@ -43,8 +43,11 @@ func init(item: Projects.Item):
 		_fill_data(item)
 	)
 	
-	_editor_button.pressed.connect(_on_rebind_editor.bind(item))
-	_editor_button.disabled = item.is_missing
+	if not item.is_missing:
+		_editor_button.pressed.connect(_on_rebind_editor.bind(item))
+		_editor_button.disabled = false
+	else:
+		_editor_button.disabled = true
 	
 	item.internals_changed.connect(func():
 		_fill_data(item)
@@ -79,12 +82,12 @@ func init(item: Projects.Item):
 		run_btn.set_script(RunButton)
 		run_btn.init(item)
 
-		var rename_btn = buttons.simple(
-			tr("Rename"), 
+		var change_btn = buttons.simple(
+			tr("Change Settings"), 
 			get_theme_icon("Rename", "EditorIcons"),
-			_on_rename.bind(item)
+			_on_change.bind(item)
 		)
-		rename_btn.disabled = item.is_missing
+		change_btn.disabled = item.is_missing
 
 		var bind_editor_btn = buttons.simple(
 			tr("Bind Editor"), 
@@ -141,7 +144,7 @@ func init(item: Projects.Item):
 #			actions.append(edit_btn)
 #			actions.append(bind_editor_btn)
 #		actions.append(remove_btn)
-		return [edit_btn, run_btn, duplicate_btn, rename_btn, bind_editor_btn, manage_tags_btn, view_command_btn, remove_btn]
+		return [edit_btn, run_btn, duplicate_btn, change_btn, bind_editor_btn, manage_tags_btn, view_command_btn, remove_btn]
 	
 	_explore_button.pressed.connect(func():
 		OS.shell_show_in_file_manager(ProjectSettings.globalize_path(item.path).get_base_dir())
@@ -168,7 +171,8 @@ func _fill_data(item):
 		
 	_project_warning.visible = item.has_invalid_editor
 	_favorite_button.button_pressed = item.favorite
-	_title_label.text = item.name
+	_title_label.text = item.display_name
+	tooltip_text = item.description
 	_editor_path_label.text = item.editor_name
 	_path_label.text = item.path
 	_icon.texture = item.icon
@@ -184,59 +188,51 @@ func _fill_data(item):
 
 
 func _set_features(features):
-	var features_to_print = Array(features).filter(func(x): return _is_version(x) or x == "C#")
+	var features_to_print = Array(features).filter(func(x): return utils.extract_version_from_string(x, true) != null or x == "C#")
 	if len(features_to_print) > 0:
 		var str = ", ".join(features_to_print)
 		_project_features.text = str
 #		_project_features.custom_minimum_size = Vector2(25 * 15, 10) * Config.EDSCALE
-		_project_features.show()
+		_project_features.visible = true
 	else:
-		_project_features.hide()
-
-
-func _is_version(feature: String):
-	return feature.contains(".") and feature.substr(0, 3).is_valid_float()
+		_project_features.visible = false
 
 
 func _on_rebind_editor(item):
 	var bind_dialog = ConfirmationDialogAutoFree.new()
 	
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 1)
 	bind_dialog.add_child(vbox)
 	
 	var hbox = HBoxContainer.new()
 	vbox.add_child(hbox)
 	
 	var title = Label.new()
+	title.text = tr("Editor:")
 	hbox.add_child(title)
 	
 	var options = OptionButton.new()
 	hbox.add_child(options)
 	
-	if item.has_version_hint:
-		var hbox2 = HBoxContainer.new()
-		hbox2.modulate = Color(0.5, 0.5, 0.5, 0.5)
-		hbox2.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_child(hbox2)
-		
-		var version_hint_title = Label.new()
-		version_hint_title.text = tr("version hint:")
-		hbox2.add_child(version_hint_title)
+	if not item.version_hint.is_empty():
+		var control = Control.new()
+		control.custom_minimum_size.y = 8
+		vbox.add_child(control)
 		
 		var version_hint_value = Label.new()
-		version_hint_value.text = item.version_hint
-		hbox2.add_child(version_hint_value)
-	
-	vbox.add_spacer(false)
-	
-	title.text = "%s: " % tr("Editor")
+		version_hint_value.modulate = Color(1.0, 1.0, 1.0, 0.701961)
+		version_hint_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		version_hint_value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		version_hint_value.text = "%s: %s" % [tr("version hint"), item.version_hint]
+		vbox.add_child(version_hint_value)
 	
 	options.item_selected.connect(func(idx):
 		bind_dialog.get_ok_button().disabled = false
 	)
 	var option_items = item.editors_to_bind
 	bind_dialog.get_ok_button().disabled = len(option_items) == 0
-	for i in len(option_items):
+	for i in range(len(option_items)):
 		var opt = option_items[i]
 		options.add_item(opt.label, i)
 		options.set_item_metadata(i, opt.path)
@@ -252,14 +248,15 @@ func _on_rebind_editor(item):
 	bind_dialog.popup_centered()
 
 
-func _on_rename(item):
-	var dialog = _rename_dialog_scene.instantiate()
+func _on_change(item):
+	var dialog = _change_dialog_scene.instantiate()
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.init(item.name, item.version_hint)
-	dialog.editor_renamed.connect(func(new_name, version_hint):
+	dialog.init(item.name, item.description, item.version_hint)
+	dialog.project_changed.connect(func(new_name, new_description, new_version_hint):
 		item.name = new_name
-		item.version_hint = version_hint
+		item.description = new_description
+		item.version_hint = new_version_hint
 		edited.emit()
 	)
 
@@ -275,7 +272,7 @@ func _on_run_with_editor(item, editor_flag, action_name, ok_button_text, auto_cl
 	
 	var confirmation_dialog = ConfirmationDialogAutoFree.new()
 	confirmation_dialog.ok_button_text = ok_button_text
-	confirmation_dialog.get_label().hide()
+	confirmation_dialog.get_label().visible = false
 	
 	var label = Label.new()
 	label.text = tr("Are you sure to %s the project with the given editor?") % action_name
@@ -308,7 +305,7 @@ func _on_run_with_editor(item, editor_flag, action_name, ok_button_text, auto_cl
 
 func _run_with_editor(item: Projects.Item, editor_flag, auto_close):
 	editor_flag.call(item)
-
+	
 	if auto_close:
 		AutoClose.close_if_should()
 
@@ -334,9 +331,9 @@ func get_actions():
 
 func apply_filter(filter):
 	return filter.call({
-		'name': _title_label.text,
-		'path': _path_label.text,
-		'tags': _tags
+		"name": _title_label.text,
+		"path": _path_label.text,
+		"tags": _tags
 	})
 
 
@@ -351,5 +348,5 @@ class RunButton extends Button:
 			disabled = item.has_invalid_editor or item.is_missing
 		)
 		if item.has_invalid_editor:
-			tooltip_text = tr("Bind editor first.")
+			tooltip_text = tr("Bind an editor first.")
 
