@@ -7,18 +7,18 @@ extends ConfirmationDialog
 @onready var _project_path_line_edit = %ProjectPathLineEdit
 @onready var _message_label = %MessageLabel
 @onready var _status_rect = %StatusRect
+@onready var _editors_option_button = %EditorsOptionButton
 @onready var _create_folder_failed_dialog = $CreateFolderFailedDialog
 @onready var _file_dialog = $FileDialog
 @onready var _randomize_name_button = %RandomizeNameButton
+@onready var _ok_button = get_ok_button()
 
-var _create_folder_failed_label: Label
+
+var _selected_version: PackedInt32Array = [0, 0, 0]
+var _editor_options: Array
 
 
 func _ready():
-	_create_folder_failed_label = Label.new()
-	_create_folder_failed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_create_folder_failed_dialog.add_child(_create_folder_failed_label)
-	
 	_project_path_line_edit.text_changed.connect(func(_arg): _validate())
 	_create_folder_button.pressed.connect(func():
 		var path = _project_path_line_edit.text.strip_edges()
@@ -26,11 +26,7 @@ func _ready():
 		if dir:
 			var err = dir.make_dir(_project_name_edit.text)
 			if err > 0:
-				_create_folder_failed_label.text = "%s %s: %s." % [
-					tr("Couldn't create folder."),
-					tr("Code"),
-					err
-				]
+				_create_folder_failed_dialog.text = "%s: %s." % [tr("Couldn't create folder. Code"), err]
 				_create_folder_failed_dialog.popup_centered()
 			elif err == OK:
 				_project_path_line_edit.text = path.path_join(_project_name_edit.text)
@@ -51,13 +47,23 @@ func _ready():
 		_validate()
 	)
 	
+	_editors_option_button.item_selected.connect(_on_editor_selected)
+	confirmed.connect(_on_confirmed.bind(true))
+	
 	min_size = Vector2(640, 215) * Config.EDSCALE
 
 
-func raise(project_name="New Game Project", args=null):
+func raise(editor_options, project_name="New Game Project"):
 	_project_name_edit.text = project_name
 	_project_path_line_edit.text = Config.DEFAULT_PROJECTS_PATH.ret()
-	_on_raise(args)
+	if _editor_options != editor_options:
+		for idx in range(len(editor_options)):
+			var opt = editor_options[idx]
+			_editors_option_button.add_item(opt.label)
+			_editors_option_button.set_item_metadata(idx, opt)
+		_editors_option_button.select(0)
+		_editors_option_button.item_selected.emit(_editors_option_button.selected)
+	_editor_options = editor_options
 	popup_centered()
 	_validate()
 
@@ -98,23 +104,19 @@ func _validate():
 	_success("")
 
 
-func error(text):
-	_error(text)
-
-
 func _error(text):
 	_set_message(text, "error")
-	get_ok_button().disabled = true
+	_ok_button.disabled = true
 
 
 func _warning(text):
 	_set_message(text, "warning")
-	get_ok_button().disabled = false
+	_ok_button.disabled = false
 
 
 func _success(text):
 	_set_message(text, "success")
-	get_ok_button().disabled = false
+	_ok_button.disabled = false
 
 
 func _set_message(text, type):
@@ -155,5 +157,9 @@ func _handle_dir_is_not_empty(_path):
 	return true
 
 
-func _on_raise(args=null):
+func _on_editor_selected(idx):
+	_selected_version = utils.extract_version_from_string(_editors_option_button.get_item_metadata(idx).version_hint)
+
+
+func _on_confirmed(edit):
 	pass
