@@ -1,6 +1,9 @@
 class_name ExecCommand
 
 
+const GODOT_VERSION_FILENAME = ".godot-version"
+
+
 class Route extends Routes.Item:
 	var _ctx: CliContext
 
@@ -91,7 +94,7 @@ func _find_editor_by_dir(base_dir: String, upwards: bool) -> LocalEditors.Item:
 		return editor
 	
 	if not upwards:
-		Output.push("-u|--upwards was not provided; neither 'project.godot' nor '.godot-version' was not found at %s" % base_dir)
+		Output.push("-u|--upwards was not provided; neither project configuration file nor '%s' was not found at %s" % [GODOT_VERSION_FILENAME, base_dir])
 	
 	if upwards and not (base_dir == "/" or base_dir.is_empty()):
 		return _find_editor_by_dir(base_dir.get_base_dir(), upwards)
@@ -100,19 +103,22 @@ func _find_editor_by_dir(base_dir: String, upwards: bool) -> LocalEditors.Item:
 
 
 func _find_by_godot_version_file(base_dir: String) -> LocalEditors.Item:
-	var godot_version_file = base_dir.path_join(".godot-version")
+	var godot_version_file = base_dir.path_join(GODOT_VERSION_FILENAME)
 	if not FileAccess.file_exists(godot_version_file):
 		return null
-	var file = FileAccess.open(godot_version_file, FileAccess.READ)
-	var version_hint = file.get_line()
-	Output.push("Extracted version hint '%s' from .godot-version" % version_hint)
+	var version_hint = FileAccess.open(godot_version_file, FileAccess.READ).get_as_text()
+	Output.push("Extracted version hint '%s' from %s" % [version_hint, GODOT_VERSION_FILENAME])
 	return LocalEditors.Selector.new().by_version_hint(version_hint, _ignore_mono).select_exact_one(_editors)
 
 
 func _find_by_project_godot_file(base_dir: String) -> LocalEditors.Item:
-	var project_godot_file = base_dir.path_join("project.godot")
-	if not FileAccess.file_exists(project_godot_file):
-		return null
+	var project_godot_file
+	for i in range(len(utils.PROJECT_CONFIG_FILENAMES)):
+		project_godot_file = base_dir.path_join(utils.PROJECT_CONFIG_FILENAMES[i])
+		if FileAccess.file_exists(project_godot_file):
+			break
+		elif i == utils.PROJECT_CONFIG_FILENAMES.size() - 1:
+			return null
 	if _projects.has(project_godot_file):
 		var project = _projects.retrieve(project_godot_file)
 		if project and project.is_valid and not project.has_invalid_editor:
@@ -122,7 +128,7 @@ func _find_by_project_godot_file(base_dir: String) -> LocalEditors.Item:
 	project_info.load(false)
 	
 	var version_hint = project_info.version_hint
-	Output.push("Extracted version hint '%s' from .project-godot" % version_hint)
+	Output.push("Extracted version hint '%s' from %s" % [version_hint, project_godot_file.get_file()])
 	return LocalEditors.Selector.new().by_version_hint(version_hint, _ignore_mono).select_exact_one(_editors)
 
 

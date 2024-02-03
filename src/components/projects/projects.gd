@@ -34,11 +34,8 @@ func init(projects: Projects.List):
 			project.editor_path = editor_path
 			project.emit_internals_changed()
 		else:
-			project = _projects.add(project_path, editor_path)
-			project.load()
-			_projects_list.add(project)
-		_projects.save()
-		_projects_list.sort_items()
+			project = _add_project(project_path, editor_path)
+		_save_projects()
 		
 		if edit:
 			project.edit()
@@ -46,17 +43,32 @@ func init(projects: Projects.List):
 	)
 	
 	_clone_project_dialog.cloned.connect(func(path: String):
-		assert(path.get_file() == "project.godot")
+		if not utils.PROJECT_CONFIG_FILENAMES.has(path.get_file()):
+			_error(tr("No project configuration file found."))
+			return
+		
 		import(path)
 	)
 	_clone_project_button.pressed.connect(func():
-		_clone_project_dialog.raise()
+		_clone_project_dialog.raise(_projects.get_editors_to_bind())
 	)
 	
-	_new_project_dialog.created.connect(func(project_path):
-		import(project_path)
+	_new_project_dialog.created.connect(func(project_path, editor_path, edit):
+		var project = _add_project(project_path, editor_path)
+		_save_projects()
+		
+		if edit:
+			project.edit()
+			AutoClose.close_if_should()
 	)
-	_new_project_button.pressed.connect(_new_project_dialog.raise)
+	_new_project_button.pressed.connect(func():
+		var editor_options = _projects.get_editors_to_bind()
+		if len(editor_options) == 0:
+			_error(tr("You need to import an editor before you can create a new project."))
+			return
+		
+		_new_project_dialog.raise(editor_options)
+	)
 	_new_project_button.icon = get_theme_icon("Add", "EditorIcons")
 	
 	_scan_button.icon = get_theme_icon("Search", "EditorIcons")
@@ -77,6 +89,18 @@ func init(projects: Projects.List):
 	
 	_projects_list.refresh(_projects.all())
 	_load_projects()
+
+
+func _add_project(project_path, editor_path) -> Projects.Item:
+	var project: Projects.Item = _projects.add(project_path, editor_path)
+	project.load()
+	_projects_list.add(project)
+	return project
+
+
+func _save_projects():
+	_projects.save()
+	_projects_list.sort_items()
 
 
 func _load_projects():
@@ -108,11 +132,11 @@ func install_zip(zip_reader: ZIPReader, project_name):
 	if _install_project_from_zip_dialog.visible:
 		zip_reader.close()
 		return
-	_install_project_from_zip_dialog.title = "Install Project: %s" % project_name
-	_install_project_from_zip_dialog.get_ok_button().text = tr("Install")
-	_install_project_from_zip_dialog.raise(project_name)
+	
+	_install_project_from_zip_dialog.title = "%s: %s" % [tr("Install Project"), project_name]
+	_install_project_from_zip_dialog.raise(_projects.get_editors_to_bind(), project_name)
 	_install_project_from_zip_dialog.dialog_hide_on_ok = false
-	_install_project_from_zip_dialog.about_to_install.connect(func(final_project_name, project_dir):
+	_install_project_from_zip_dialog.about_to_install.connect(func(final_project_name, project_dir, editor_path):
 		var unzip_err = zip.unzip_to_path(zip_reader, project_dir)
 		zip_reader.close()
 		if unzip_err != OK:
@@ -124,8 +148,9 @@ func install_zip(zip_reader: ZIPReader, project_name):
 			return
 		
 		var project_file_path = project_configs[0]
-		_install_project_from_zip_dialog.hide()
-		import(project_file_path.path)
+		_install_project_from_zip_dialog.visible = false
+		_add_project(project_file_path.path, editor_path)
+		_save_projects()
 		pass,
 		CONNECT_ONE_SHOT
 	)
@@ -196,14 +221,13 @@ func _on_projects_list_item_duplicate_requested(project: Projects.Item) -> void:
 	if _duplicate_project_dialog.visible:
 		return
 	
-	_duplicate_project_dialog.title = "Duplicate Project: %s" % project.name
-	_duplicate_project_dialog.get_ok_button().text = tr("Duplicate")
+	_duplicate_project_dialog.title = "%s: %s" % [tr("Duplicate Project"), project.name]
 	
-	_duplicate_project_dialog.raise(project.name)
+	_duplicate_project_dialog.raise(_projects.get_editors_to_bind(), project.name)
 	
 	_duplicate_project_dialog.dialog_hide_on_ok = false
 	_duplicate_project_dialog.about_to_install.connect(func(final_project_name, project_dir):
-		var err = 0
+		var err = OK
 		if OS.has_feature("macos") or OS.has_feature("linux"):
 			err = OS.execute("cp", ["-r", project.path.get_base_dir().path_join("."), project_dir])
 		elif OS.has_feature("windows"):
@@ -217,10 +241,10 @@ func _on_projects_list_item_duplicate_requested(project: Projects.Item) -> void:
 					]
 				]
 			)
-		if err != 0:
-			_duplicate_project_dialog.error(tr("Error. Code: %s" % err))
+		if err != OK:
+			_duplicate_project_dialog.error("%s: %s" % [tr("Failed to duplicate project. Code"), err])
 			return
-
+		
 		var project_configs = utils.find_project_godot_files(project_dir)
 		if len(project_configs) == 0:
 			_duplicate_project_dialog.error(tr("No project.godot found."))

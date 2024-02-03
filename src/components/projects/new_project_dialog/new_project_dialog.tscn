@@ -1,21 +1,173 @@
-[gd_scene load_steps=3 format=3 uid="uid://canl4lc1tj7qu"]
+[gd_scene load_steps=4 format=3 uid="uid://canl4lc1tj7qu"]
 
 [ext_resource type="PackedScene" uid="uid://d10kvn2s6suxh" path="res://src/components/projects/install_project_dialog/install_project_dialog.tscn" id="1_1a1ca"]
 [ext_resource type="Script" path="res://src/components/projects/new_project_dialog/new_project_dialog.gd" id="2_f5jc0"]
+[ext_resource type="Script" path="res://src/components/projects/new_project_dialog/renderer_option.gd" id="4_jfunb"]
 
 [node name="InstallProjectDialog" instance=ExtResource("1_1a1ca")]
+title = "Create New Project"
+size = Vector2i(621, 257)
+ok_button_text = "Create & Edit"
 script = ExtResource("2_f5jc0")
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer" index="4"]
+[node name="VBoxContainer" parent="." index="3"]
+offset_bottom = 208.0
+
+[node name="RendererContainer" type="VBoxContainer" parent="VBoxContainer" index="6"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="VBoxContainer/RendererContainer" index="0"]
+layout_mode = 2
+text = "Renderer:"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/RendererContainer" index="1"]
 layout_mode = 2
 
-[node name="SvgLabel" type="Label" parent="VBoxContainer/HBoxContainer3" index="0"]
-layout_mode = 2
-text = "Create icon.svg:"
-
-[node name="SvgCheckBox" type="CheckBox" parent="VBoxContainer/HBoxContainer3" index="1"]
+[node name="RendererOptions" type="VBoxContainer" parent="VBoxContainer/RendererContainer/HBoxContainer" index="0"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="CheckBox1" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="0"]
+custom_minimum_size = Vector2(139, 0)
+layout_mode = 2
+button_pressed = true
+text = "Forward+"
+script = ExtResource("4_jfunb")
+data = {
+"3.1.0": {
+"info": "•  Higher visual quality.
+•  All features available.
+•  Incompatible with older hardware.
+•  Not recommended for web games.",
+"keys": {
+"rendering": {
+"quality/driver/driver_name": "\"GLES3\""
+}
+},
+"name": "OpenGL ES 3.0"
+},
+"4.0.0": {
+"info": "•  Supports desktop platforms only.
+•  Advanced 3D graphics available.
+•  Can scale to large complex scenes.
+•  Uses RenderingDevice backend.
+•  Slower rendering of simple scenes.",
+"keys": {},
+"name": "Forward+"
+}
+}
+
+[node name="CheckBox2" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="1"]
+custom_minimum_size = Vector2(139, 0)
+layout_mode = 2
+text = "Mobile"
+script = ExtResource("4_jfunb")
+data = {
+"3.1.0": {
+"info": "•  Lower visual quality.
+•  Some features not available.
+•  Works on most hardware.
+•  Recommended for web games.",
+"keys": {
+"rendering": {
+"quality/driver/driver_name": "\"GLES2\"",
+"vram_compression/import_etc": "true",
+"vram_compression/import_etc2": "false"
+}
+},
+"name": "OpenGL ES 2.0"
+},
+"4.0.0": {
+"info": "•  Supports desktop + mobile platforms.
+•  Less advanced 3D graphics.
+•  Less scalable for complex scenes.
+•  Uses RenderingDevice backend.
+•  Fast rendering of simple scenes.",
+"keys": {},
+"name": "Mobile"
+}
+}
+
+[node name="CheckBox3" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="2"]
+custom_minimum_size = Vector2(139, 0)
+layout_mode = 2
+text = "Compatibility"
+script = ExtResource("4_jfunb")
+data = {
+"4.0.0": {
+"info": "•  Supports desktop, mobile + web platforms.
+•  Least advanced 3D graphics (currently work-in-progress).
+•  Intended for low-end/older devices.
+•  Uses OpenGL 3 backend (OpenGL 3.3/ES 3.0/WebGL2).
+•  Fastest rendering of simple scenes.",
+"keys": {},
+"name": "Compatibility"
+}
+}
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/RendererContainer/HBoxContainer" index="1"]
+layout_mode = 2
+
+[node name="RendererInfo" type="Label" parent="VBoxContainer/RendererContainer/HBoxContainer" index="2"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.701961)
+layout_mode = 2
+theme_override_constants/line_spacing = 1
+text = "•  Supports desktop platforms only.
+•  Advanced 3D graphics available.
+•  Can scale to large complex scenes.
+•  Uses RenderingDevice backend.
+•  Slower rendering of simple scenes."
+
+[node name="Control" type="Control" parent="VBoxContainer/RendererContainer" index="2"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/RendererContainer" index="3"]
+modulate = Color(1, 1, 1, 0.701961)
+layout_mode = 2
+text = "The renderer can be changed later, but scenes may need to be adjusted."
+horizontal_alignment = 1
+
+[node name="Control2" type="Control" parent="VBoxContainer/RendererContainer" index="4"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="SvgContainer" type="HBoxContainer" parent="VBoxContainer" index="7"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/SvgContainer" index="0"]
+layout_mode = 2
+text = "Use icon.svg:"
+
+[node name="SvgCheckBox" type="CheckBox" parent="VBoxContainer/SvgContainer" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer" index="8"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer4" index="0"]
+layout_mode = 2
+text = "Version Control Metadata:"
+
+[node name="VCSMetadataOptionButton" type="OptionButton" parent="VBoxContainer/HBoxContainer4" index="1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(85, 0)
+layout_mode = 2
+item_count = 2
+selected = 1
+fit_to_longest_item = false
+popup/item_0/text = "None"
+popup/item_0/id = 0
+popup/item_1/text = "Git"
+popup/item_1/id = 1
 
 [node name="FileDialog" parent="." index="5"]
 size = Vector2i(762, 159)

@@ -18,11 +18,14 @@ func _ready() -> void:
 		)
 	)
 	
-	_name_edit.text_changed.connect(func(new_text):
-		get_ok_button().disabled = new_text.strip_edges().is_empty()
-	)
+	_name_edit.text_changed.connect(_on_name_text_changed)
 
 
 func init(initial_name, initial_version_hint):
 	_name_edit.text = initial_name
 	_version_hint_edit.text = initial_version_hint
+	_on_name_text_changed(_name_edit.text)
+
+
+func _on_name_text_changed(new_text):
+	get_ok_button().disabled = new_text.strip_edges().is_empty()

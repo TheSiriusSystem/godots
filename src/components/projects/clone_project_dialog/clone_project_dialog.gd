@@ -36,6 +36,11 @@ func _ready():
 	)
 
 
+func raise(editor_options, project_name="New Game Project"):
+	super.raise(editor_options, project_name)
+	_repository_edit.clear()
+
+
 func _do_clone(origin_repository, project_path):
 	var output = []
 	var err = OS.execute(
@@ -71,17 +76,17 @@ func _emit_cloned(err, output, path):
 	cloned.emit(possible_project_files[0].path)
 
 
-func _on_raise(args=null):
-	_repository_edit.clear()
-
-
 func _spawn_clone_alert(err):
-	_clone_failed_dialog.dialog_text = tr('Failed to clone. Error code: %s' % err)
+	_clone_failed_dialog.dialog_text = "%s %s: %s." % [
+		tr("Failed to clone project."),
+		tr("Code"),
+		err
+	]
 	_clone_failed_dialog.popup_centered()
 
 
 func _spawn_unable_to_find_project_godot_alert():
-	_clone_failed_dialog.dialog_text = tr('Unable to find project configuration file.')
+	_clone_failed_dialog.dialog_text = tr("Unable to find project configuration file.")
 	_clone_failed_dialog.popup_centered()
 
 
