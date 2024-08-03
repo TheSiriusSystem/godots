@@ -113,7 +113,10 @@ layout_mode = 2
 
 [node name="NewsButton" type="LinkButton" parent="GuiBase/MainVBox/Content/VBoxContainer/PanelContainer/HBoxContainer"]
 unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.6)
 layout_mode = 2
+tooltip_text = "Click to see the post."
+underline = 1
 script = ExtResource("10_ciylo")
 
 [node name="Control" type="Control" parent="GuiBase/MainVBox/Content/VBoxContainer/PanelContainer/HBoxContainer"]
@@ -139,8 +142,11 @@ layout_mode = 2
 
 [node name="VersionButton" type="LinkButton" parent="GuiBase/MainVBox/Content/VBoxContainer/PanelContainer/HBoxContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.6)
 layout_mode = 2
+tooltip_text = "Click to see other versions."
 text = "1.0.dev"
+underline = 1
 
 [node name="ManageTags" parent="." instance=ExtResource("12_6d5cn")]
 visible = false
