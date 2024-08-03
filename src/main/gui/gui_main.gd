@@ -110,14 +110,7 @@ func _ready():
 	%NewsButton.underline = LinkButton.UNDERLINE_MODE_ON_HOVER
 	%NewsButton.tooltip_text = tr("Click to see the post.")
 	
-	_settings_button.flat = true
-	#_settings_button.text = tr("Settings")
-	_settings_button.text = ""
-	_settings_button.tooltip_text = tr("Settings")
-	_settings_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_settings_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	_settings_button.icon = get_theme_icon("Tools", "EditorIcons")
-	#_settings_button.self_modulate = Color(1, 1, 1, 0.6)
 	_settings_button.pressed.connect(func():
 		$Settings.raise_settings()
 	)

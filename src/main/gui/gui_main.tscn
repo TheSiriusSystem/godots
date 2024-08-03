@@ -63,10 +63,10 @@ layout_mode = 2
 [node name="SettingsButton" type="Button" parent="GuiBase/MainVBox/TitleBar/MainContainer" index="3"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Settings"
 focus_mode = 0
-text = "settings"
+text = "Settings"
 flat = true
-icon_alignment = 1
 
 [node name="Content" type="MarginContainer" parent="GuiBase/MainVBox"]
 layout_mode = 2
