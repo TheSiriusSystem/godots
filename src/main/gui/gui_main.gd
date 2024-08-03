@@ -191,7 +191,7 @@ func _enter_tree():
 	_projects_service = Projects.List.new(
 		Config.PROJECTS_CONFIG_PATH,
 		_local_editors_service,
-		preload("res://assets/default_project_icon.svg")
+		preload("res://assets/default_project_icon_4.svg")
 	)
 	
 	Context.add(self, _local_remote_switch_context)
