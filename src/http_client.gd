@@ -52,14 +52,14 @@ class Response:
 		
 		match result:
 			HTTPRequest.RESULT_CHUNKED_BODY_SIZE_MISMATCH, HTTPRequest.RESULT_CONNECTION_ERROR, HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED:
-				error_text = tr("Connection error, prease try again.")
-				status = tr("Can't connect")
+				error_text = tr("Connection error, please try again.")
+				status = tr("Can't connect.")
 			HTTPRequest.RESULT_CANT_CONNECT, HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR:
 				error_text = tr("Can't connect to host") + ": " + host
-				status = tr("Can't connect")
+				status = tr("Can't connect.")
 			HTTPRequest.RESULT_NO_RESPONSE:
 				error_text = tr("No response from host") + ": " + host
-				status = tr("No response")
+				status = tr("No response.")
 			HTTPRequest.RESULT_CANT_RESOLVE:
 				error_text = tr("Can't resolve hostname") + ": " + host
 				status = tr("Can't resolve.")
@@ -70,10 +70,10 @@ class Response:
 				error_text = tr("Cannot save response to") + ": " + download_file
 				status = tr("Write error.")
 			HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED:
-				error_text = tr("Request failed, too many redirects")
+				error_text = tr("Request failed, too many redirects.")
 				status = tr("Redirect loop.")
 			HTTPRequest.RESULT_TIMEOUT:
-				error_text = tr("Request failed, timeout")
+				error_text = tr("Request failed, timeout.")
 				status = tr("Timeout.")
 			_:
 				if code != 200:
