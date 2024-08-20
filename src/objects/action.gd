@@ -109,7 +109,7 @@ class IconTheme extends Icon:
 	func texture() -> Texture2D:
 		return _control.get_theme_icon(_name, _theme_type)
 
-
+	
 class ButtonControl extends Button:
 	var _action: Action.Self
 	
