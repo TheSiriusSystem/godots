@@ -1,7 +1,5 @@
 extends ConfirmationDialog
 
-const forbidden_characters = ["/", "\\", "-"]
-
 @export var _tag_scene: PackedScene
 
 @onready var _item_tags_container: HFlowContainer = %ItemTagsContainer
@@ -9,17 +7,14 @@ const forbidden_characters = ["/", "\\", "-"]
 @onready var _create_tag_dialog: ConfirmationDialog = $CreateTagDialog
 @onready var _new_tag_name_edit: LineEdit = %NewTagNameEdit
 @onready var _create_tag_button: Button = %CreateTagButton
-@onready var _tag_error_label: Label = %TagErrorLabel
+@onready var action_buttons: Array[Button] = [
+	_create_tag_dialog.get_ok_button(), # HACK: utils.set_dialog_status() relies on this variable, so we use the dialog's OK button.
+]
 
 var _on_confirm_callback
 
 func _ready() -> void:
 #	super._ready()
-	
-	_tag_error_label.add_theme_color_override(
-		"font_color", 
-		get_theme_color("error_color", "Editor")
-	)
 	
 	$VBoxContainer/Label.theme_type_variation = "HeaderMedium"
 	$VBoxContainer/Label3.theme_type_variation = "HeaderMedium"
@@ -53,31 +48,23 @@ func _ready() -> void:
 	)
 	
 	_new_tag_name_edit.text_changed.connect(func(new_text):
-		_tag_error_label.text = ""
-		_tag_error_label.visible = false
+		if new_text.strip_edges().is_empty():
+			utils.set_dialog_status(_create_tag_dialog, tr("Tag name can't be empty."), utils.DialogStatus.ERROR)
+			return
 		
-		if new_text.is_empty():
-			_tag_error_label.text = tr("Tag name can't be empty.")
-			_tag_error_label.visible = true
-		if new_text.contains(" "):
-			_tag_error_label.text = tr("Tag name can't contain spaces.")
-			_tag_error_label.visible = true
 		if new_text.to_lower() != new_text:
-			_tag_error_label.text = tr("Tag name must be lowercase.")
-			_tag_error_label.visible = true
-		for forbidden_char in forbidden_characters:
-			if new_text.contains(forbidden_char):
-				_tag_error_label.text = tr("These characters are not allowed in tags: %s.") % " ".join(forbidden_characters)
-				_tag_error_label.visible = true
+			utils.set_dialog_status(_create_tag_dialog, tr("Tag name must be lowercase."), utils.DialogStatus.ERROR)
+			return
 		
-		_update_ok_button_enabled()
+		if new_text.contains(" "):
+			utils.set_dialog_status(_create_tag_dialog, tr("Tag name can't contain spaces."), utils.DialogStatus.ERROR)
+			return
+		
+		utils.set_dialog_status(_create_tag_dialog, "", utils.DialogStatus.SUCCESS)
 	)
 
 
 func init(item_tags, all_tags, on_confirm):
-	_tag_error_label.visible = false
-	_tag_error_label.text = ""
-	_update_ok_button_enabled()
 	_on_confirm_callback = on_confirm
 	
 	_clear_tag_container_children(_item_tags_container)
@@ -87,10 +74,6 @@ func init(item_tags, all_tags, on_confirm):
 	_clear_tag_container_children(_all_tags_container)
 	for tag in Set.of(all_tags).values():
 		_add_to_all_tags(tag)
-
-
-func _update_ok_button_enabled():
-	_create_tag_dialog.get_ok_button().disabled = _tag_error_label.visible
 
 
 func _add_to_item_tags(tag):

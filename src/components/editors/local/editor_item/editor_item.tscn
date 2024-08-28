@@ -1,11 +1,11 @@
 [gd_scene load_steps=13 format=3 uid="uid://dvlmutw7v33j0"]
 
 [ext_resource type="Script" path="res://src/components/editors/local/editor_item/editor_item.gd" id="1_gsbp6"]
-[ext_resource type="PackedScene" uid="uid://b2tm4lxm80sj0" path="res://src/components/editors/local/editor_item/rename_editor_dialog.tscn" id="2_6et78"]
-[ext_resource type="Texture2D" uid="uid://bqnuds1nn277g" path="res://assets/editor_icon_3.svg" id="2_8fw8m"]
+[ext_resource type="PackedScene" uid="uid://vj6pjg4bd2ja" path="res://src/components/editors/local/editor_item/editor_settings_dialog.tscn" id="2_6et78"]
+[ext_resource type="Texture2D" uid="uid://dvuw1i5jv0kr8" path="res://assets/editor_icon_3.svg" id="2_8fw8m"]
 [ext_resource type="Script" path="res://src/components/misc/favorite_button.gd" id="3_8hshq"]
 [ext_resource type="PackedScene" uid="uid://dgm66rd6ay24" path="res://src/components/editors/local/editor_item/add_extra_arguments_editor_dialog.tscn" id="3_dx4xf"]
-[ext_resource type="PackedScene" uid="uid://d2nl4stib3sjd" path="res://src/components/editors/local/editor_item/show_owners_dialog.tscn" id="3_k6g00"]
+[ext_resource type="PackedScene" path="res://src/components/editors/local/editor_item/show_owners_dialog.tscn" id="3_k6g00"]
 [ext_resource type="Script" path="res://src/components/misc/list_item_icon.gd" id="5_48fct"]
 [ext_resource type="Script" path="res://src/components/misc/list_item_title_label.gd" id="6_qnxw1"]
 [ext_resource type="Script" path="res://src/components/misc/item_tag_container.gd" id="7_0bi54"]
@@ -21,7 +21,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
 script = ExtResource("1_gsbp6")
-_rename_dialog_scene = ExtResource("2_6et78")
+_edit_dialog_scene = ExtResource("2_6et78")
 _view_owners_dialog_scene = ExtResource("3_k6g00")
 _add_extra_arguments_scene = ExtResource("3_dx4xf")
 
@@ -42,6 +42,7 @@ script = ExtResource("5_48fct")
 [node name="InfoVBox" type="VBoxContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 0
 
 [node name="Control" type="Control" parent="InfoVBox"]
 custom_minimum_size = Vector2(2.08165e-12, 1)
@@ -59,20 +60,37 @@ text = "test"
 text_overrun_behavior = 3
 script = ExtResource("6_qnxw1")
 
-[node name="Control" type="Control" parent="InfoVBox/Title"]
-custom_minimum_size = Vector2(10, 10)
+[node name="EditorFeatures" type="Label" parent="InfoVBox/Title"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TagContainer" type="HBoxContainer" parent="InfoVBox/Title"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("7_0bi54")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="InfoVBox"]
 layout_mode = 2
 
-[node name="ActionsContainer" type="HBoxContainer" parent="InfoVBox/Title"]
+[node name="VersionLabel" type="Label" parent="InfoVBox/HBoxContainer"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.666667)
+layout_mode = 2
+mouse_filter = 1
+text = "Version N/A"
+
+[node name="ActionsContainer" type="HBoxContainer" parent="InfoVBox/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CustomMinimumSize" type="Node" parent="InfoVBox/Title/ActionsContainer"]
+[node name="CustomMinimumSize" type="Node" parent="InfoVBox/HBoxContainer/ActionsContainer"]
 script = ExtResource("10_vahym")
 custom_minimum_size = Vector2(300, 0)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="InfoVBox/Title/ActionsContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="InfoVBox/HBoxContainer/ActionsContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
@@ -80,53 +98,34 @@ follow_focus = true
 horizontal_scroll_mode = 3
 vertical_scroll_mode = 3
 
-[node name="ActionsHBox" type="HBoxContainer" parent="InfoVBox/Title/ActionsContainer/ScrollContainer"]
+[node name="ActionsHBox" type="HBoxContainer" parent="InfoVBox/HBoxContainer/ActionsContainer/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 3
 alignment = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="InfoVBox"]
-layout_mode = 2
-horizontal_scroll_mode = 3
-vertical_scroll_mode = 0
-
-[node name="Path" type="HBoxContainer" parent="InfoVBox/ScrollContainer"]
+[node name="Path" type="HBoxContainer" parent="InfoVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ExploreButton" type="Button" parent="InfoVBox/ScrollContainer/Path"]
+[node name="ExploreButton" type="Button" parent="InfoVBox/Path"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.498039)
 layout_mode = 2
 flat = true
 script = ExtResource("8_3j1qu")
 
-[node name="PathLabel" type="Label" parent="InfoVBox/ScrollContainer/Path"]
+[node name="PathLabel" type="Label" parent="InfoVBox/Path"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.498039)
 layout_mode = 2
 text = "/home/kovkel/editor/path"
 script = ExtResource("8_d5wg1")
 
-[node name="CustomMinimumSize" type="Node" parent="InfoVBox/ScrollContainer/Path/PathLabel"]
+[node name="CustomMinimumSize" type="Node" parent="InfoVBox/Path/PathLabel"]
 script = ExtResource("10_vahym")
 custom_minimum_size = Vector2(128, 0)
-
-[node name="EditorFeatures" type="Label" parent="InfoVBox/ScrollContainer/Path"]
-unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 2
-vertical_alignment = 1
-
-[node name="TagContainer" type="HBoxContainer" parent="InfoVBox/ScrollContainer/Path"]
-unique_name_in_owner = true
-layout_mode = 2
-script = ExtResource("7_0bi54")
-
-[node name="Control" type="Control" parent="InfoVBox/ScrollContainer/Path"]
-layout_mode = 2
 
 [node name="Control2" type="Control" parent="InfoVBox"]
 layout_mode = 2

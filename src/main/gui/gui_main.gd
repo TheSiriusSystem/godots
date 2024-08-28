@@ -31,9 +31,9 @@ func _ready():
 		if len(files) == 0:
 			return
 		var file = files[0].simplify_path()
-		if file.ends_with("project.godot"):
+		if file.get_file() in utils.PROJECT_CONFIG_FILENAMES:
 			_projects.import(file)
-		elif file.ends_with(".zip"):
+		elif file.get_extension() == "zip":
 			var zip_reader = ZIPReader.new()
 			var unzip_err = zip_reader.open(file)
 			if unzip_err != OK:
@@ -42,7 +42,7 @@ func _ready():
 			var has_project_godot_file = len(
 				Array(
 					zip_reader.get_files()
-				).map(func(x): return x.get_file() == "project.godot")
+				).map(func(x): return x.get_file() in utils.PROJECT_CONFIG_FILENAMES)
 			) > 0
 			if has_project_godot_file:
 				_projects.install_zip(
@@ -156,7 +156,7 @@ func _enter_tree():
 			DisplayServer.window_set_position(window_position)
 
 	window.min_size = Vector2(700, 350) * Config.EDSCALE
-	if Config.REMEMBER_WINDOW_SIZE.ret():
+	if Config.	REMEMBER_WINDOW_SIZE.ret():
 		var rect = Config.LAST_WINDOW_RECT.ret(Rect2i(
 			window.position,
 			window.min_size

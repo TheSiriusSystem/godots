@@ -3,32 +3,96 @@
 [ext_resource type="PackedScene" uid="uid://d10kvn2s6suxh" path="res://src/components/projects/install_project_dialog/install_project_dialog.tscn" id="1_1a1ca"]
 [ext_resource type="Script" path="res://src/components/projects/new_project_dialog/new_project_dialog.gd" id="2_f5jc0"]
 
-[node name="InstallProjectDialog" instance=ExtResource("1_1a1ca")]
-size = Vector2i(321, 275)
+[node name="NewProjectDialog" instance=ExtResource("1_1a1ca")]
+size = Vector2i(573, 261)
+ok_button_text = "Create & Edit"
 script = ExtResource("2_f5jc0")
 
 [node name="VBoxContainer" parent="." index="3"]
-offset_right = 313.0
+offset_right = 565.0
+offset_bottom = 212.0
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer" index="5"]
-layout_mode = 2
-
-[node name="GodotVersionSwitch" type="HBoxContainer" parent="VBoxContainer" index="6"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="VBoxContainer/GodotVersionSwitch" index="0"]
+[node name="RendererContainer" type="VBoxContainer" parent="VBoxContainer" index="7"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "Godot Version:"
+theme_override_constants/separation = 0
 
-[node name="HandlerOptionButton" type="OptionButton" parent="VBoxContainer/GodotVersionSwitch" index="1"]
+[node name="Label" type="Label" parent="VBoxContainer/RendererContainer" index="0"]
+layout_mode = 2
+text = "Renderer:"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/RendererContainer" index="1"]
+layout_mode = 2
+
+[node name="RendererOptions" type="VBoxContainer" parent="VBoxContainer/RendererContainer/HBoxContainer" index="0"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 3
 
-[node name="CustomFormTabs" type="TabContainer" parent="VBoxContainer" index="7"]
+[node name="0" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="0"]
+custom_minimum_size = Vector2(139, 0)
 layout_mode = 2
-tabs_visible = false
+button_pressed = true
+text = "Option 1"
+clip_text = true
+
+[node name="1" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="1"]
+custom_minimum_size = Vector2(139, 0)
+layout_mode = 2
+text = "Option 2"
+
+[node name="2" type="CheckBox" parent="VBoxContainer/RendererContainer/HBoxContainer/RendererOptions" index="2"]
+custom_minimum_size = Vector2(139, 0)
+layout_mode = 2
+text = "Option 3"
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/RendererContainer/HBoxContainer" index="1"]
+layout_mode = 2
+
+[node name="RendererInfo" type="Label" parent="VBoxContainer/RendererContainer/HBoxContainer" index="2"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.701961)
+layout_mode = 2
+theme_override_constants/line_spacing = 1
+
+[node name="Control" type="Control" parent="VBoxContainer/RendererContainer" index="2"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/RendererContainer" index="3"]
+modulate = Color(1, 1, 1, 0.701961)
+layout_mode = 2
+text = "The renderer can be changed later, but scenes may need to be adjusted."
+horizontal_alignment = 1
+
+[node name="Control2" type="Control" parent="VBoxContainer/RendererContainer" index="4"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="HQIconSwitch" type="HBoxContainer" parent="VBoxContainer" index="8"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/HQIconSwitch" index="0"]
+layout_mode = 2
+text = "Use High-Quality Icon:"
+
+[node name="HQIconCheckBox" type="CheckBox" parent="VBoxContainer/HQIconSwitch" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VCSSwitch" type="HBoxContainer" parent="VBoxContainer" index="9"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/VCSSwitch" index="0"]
+layout_mode = 2
+text = "Version Control Metadata:"
+
+[node name="VCSOptionButton" type="OptionButton" parent="VBoxContainer/VCSSwitch" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="FileDialog" parent="." index="5"]
-size = Vector2i(762, 159)
+size = Vector2i(762, 175)

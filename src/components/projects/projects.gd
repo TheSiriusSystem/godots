@@ -27,20 +27,24 @@ func init(projects: Projects.List):
 		Action.from_dict({
 			"key": "new-project",
 			"icon": Action.IconTheme.new(self, "Add", "EditorIcons"),
-			"act": _new_project_dialog.raise,
+			#"act": _new_project_dialog.raise("New Game Project", _projects.get_editors_to_bind()),
+			"act": func():
+				_new_project_dialog.raise(_projects.get_editors_to_bind(), "New Game Project"),
 			"label": tr("New"),
 		}),
 		Action.from_dict({
 			"label": tr("Import"),
 			"key": "import-project",
 			"icon": Action.IconTheme.new(self, "Load", "EditorIcons"),
-			"act": func(): import()
+			"act": func():
+				import()\
 		}),
 		Action.from_dict({
 			"label": tr("Clone"),
 			"key": "clone-project",
 			"icon": Action.IconTheme.new(self, "VcsBranches", "EditorIcons"),
-			"act": func(): _clone_project_dialog.raise()
+			"act": func():
+				_clone_project_dialog.raise(_projects.get_editors_to_bind())\
 		}),
 		Action.from_dict({
 			"label": tr("Scan"),
@@ -50,8 +54,7 @@ func init(projects: Projects.List):
 				_scan_dialog.current_dir = ProjectSettings.globalize_path(
 					Config.DEFAULT_PROJECTS_PATH.ret()
 				)
-				_scan_dialog.popup_centered_ratio(0.5)
-				pass\
+				_scan_dialog.popup_centered_ratio(0.5)\
 		}),
 		Action.from_dict({
 			"label": tr("Remove Missing"),
@@ -117,12 +120,21 @@ func init(projects: Projects.List):
 	)
 	
 	_clone_project_dialog.cloned.connect(func(path: String):
-		assert(path.get_file() == "project.godot")
+		assert(path.get_file() in utils.PROJECT_CONFIG_FILENAMES)
 		import(path)
 	)
 	
-	_new_project_dialog.created.connect(func(project_path):
-		import(project_path)
+	_new_project_dialog.created.connect(func(project_path, editor_path, edit):
+		_import_project_dialog.imported.emit(
+			project_path,
+			editor_path,
+			edit,
+			null
+		)
+		print("Importing with settings:")
+		print(project_path)
+		print(editor_path)
+		print(edit)
 	)
 	
 	_scan_dialog.dir_to_scan_selected.connect(func(dir_to_scan: String):
@@ -135,6 +147,9 @@ func init(projects: Projects.List):
 	
 	_projects_list.refresh(_projects.all())
 	_load_projects()
+	
+	if Config.ENABLE_PROJECT_AUTOSCAN.ret():
+		_scan_projects(Config.AUTOSCAN_PROJECTS_PATH.ret())
 
 
 func _load_projects():
@@ -254,4 +269,4 @@ func _on_projects_list_item_duplicate_requested(project: Projects.Item) -> void:
 	if _duplicate_project_dialog.visible:
 		return
 	
-	_duplicate_project_dialog.raise(project.name, project)
+	_duplicate_project_dialog.raise(_projects.get_editors_to_bind(), project.name, project)

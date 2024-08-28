@@ -7,18 +7,24 @@ extends ConfirmationDialog
 @onready var _project_path_line_edit = %ProjectPathLineEdit
 @onready var _message_label = %MessageLabel
 @onready var _status_rect = %StatusRect
+@onready var _editors_option_button = %EditorsOptionButton
 @onready var _create_folder_failed_dialog = $CreateFolderFailedDialog
 @onready var _file_dialog = $FileDialog
 @onready var _randomize_name_button = %RandomizeNameButton
+@onready var action_buttons: Array[Button] = [
+	get_ok_button(),
+]
 
 var _create_folder_failed_label: Label
-
+var _editor_options: Array
+var _selected_version: PackedInt32Array = utils.EDITOR_VERSION_ARRAY.duplicate()
 
 func _ready():
 	_create_folder_failed_label = Label.new()
 	_create_folder_failed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_create_folder_failed_dialog.add_child(_create_folder_failed_label)
 	
+	_project_name_edit.text_changed.connect(func(_arg): _validate())
 	_project_path_line_edit.text_changed.connect(func(_arg): _validate())
 	_create_folder_button.pressed.connect(func():
 		var path = _project_path_line_edit.text.strip_edges()
@@ -51,15 +57,31 @@ func _ready():
 		_validate()
 	)
 	
+	_editors_option_button.item_selected.connect(func(idx):
+		_selected_version = utils.extract_version_from_string(_editors_option_button.get_item_metadata(idx).version_hint)
+		_on_editor_selected(idx)
+	)
+	
+	confirmed.connect(_on_confirmed.bind(true))
+	
 	min_size = Vector2(640, 215) * Config.EDSCALE
 
 
-func raise(project_name="New Game Project", args=null):
+func raise(editor_options, project_name="New Game Project", args=null):
 	_project_name_edit.text = project_name
 	_project_path_line_edit.text = Config.DEFAULT_PROJECTS_PATH.ret()
 	_on_raise(args)
 	popup_centered()
 	_validate()
+	if _editors_option_button.is_visible_in_tree() and _editor_options != editor_options:
+		_editor_options = editor_options
+		_editors_option_button.clear()
+		for idx in range(len(editor_options)):
+			var opt = editor_options[idx]
+			_editors_option_button.add_item(opt.label)
+			_editors_option_button.set_item_metadata(idx, opt)
+		_editors_option_button.select(0)
+		_editors_option_button.item_selected.emit(_editors_option_button.selected)
 
 
 func _validate():
@@ -67,14 +89,16 @@ func _validate():
 	var dir = DirAccess.open(path)
 	
 	if not dir:
-		_error(tr("The path specified doesn't exist."))
-		return
+		utils.set_dialog_status(self, tr(
+			"The path specified does not exist."
+		), utils.DialogStatus.ERROR)
+		return false
 	
 	if path.simplify_path() in [OS.get_environment("HOME"), OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS), OS.get_executable_path().get_base_dir()].filter(func(x): return x.simplify_path()):
-		_error(tr(
+		utils.set_dialog_status(self, tr(
 			"You cannot save a project in the selected path. Please make a new folder or choose a new path."
-		))
-		return
+		), utils.DialogStatus.ERROR)
+		return false
 
 	# Check if the specified folder is empty, even though this is not an error, it is good to check here.
 	var dir_is_empty = true
@@ -92,10 +116,25 @@ func _validate():
 	dir.list_dir_end()
 
 	if not dir_is_empty:
-		if _handle_dir_is_not_empty(path):
-			return
+		if Config.ALLOW_INSTALL_TO_NOT_EMPTY_DIR.ret():
+			utils.set_dialog_status(self, tr(
+				"The selected path is not empty. Choosing an empty folder is highly recommended."
+			), utils.DialogStatus.WARNING)
+			return true
+		else:
+			utils.set_dialog_status(self, tr(
+				"The selected path is not empty."
+			), utils.DialogStatus.ERROR)
+			return false
 	
-	_success("")
+	if _project_name_edit.text.is_empty():
+		utils.set_dialog_status(self, tr(
+			"It would be a good idea to name your project."
+		), utils.DialogStatus.WARNING)
+		return true
+	
+	utils.set_dialog_status(self, "", utils.DialogStatus.SUCCESS)
+	return true
 
 
 func error(text):
@@ -156,4 +195,12 @@ func _handle_dir_is_not_empty(_path):
 
 
 func _on_raise(args=null):
+	pass
+
+
+func _on_editor_selected(idx):
+	pass
+
+
+func _on_confirmed(edit):
 	pass

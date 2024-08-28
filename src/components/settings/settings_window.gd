@@ -8,41 +8,103 @@ var _prev_rect
 func _prepare_settings():
 	return [
 		SettingChangeObserved(SettingCfg(
-			"application/config/auto_close",
+			"godots/application/cache_path",
+			Config.CACHE_DIR_PATH,
+			SettingFilePath,
+			tr("The folder where asset images are cached.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/application/download_path",
+			Config.DOWNLOADS_PATH,
+			SettingFilePath,
+			tr("The folder where ZIP files are downloaded to.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/application/update_unzip_path",
+			Config.UPDATES_PATH,
+			SettingFilePath,
+			tr("The folder where Godots release ZIP files are unzipped.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/application/check_only_stable_updates",
+			Config.ONLY_STABLE_UPDATES,
+			SettingCheckbox,
+			tr("Only check for stable Godots releases.")
+		)),
+		
+		SettingChangeObserved(SettingCfg(
+			"godots/editors/default_editor_path",
+			Config.VERSIONS_PATH,
+			SettingFilePath,
+			tr("The folder where editors should be imported from or added to by default.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/editors/new_editor_naming_convention",
+			Config.NEW_EDITOR_NAME_FORMAT,
+			SettingNewEditorNamingConvention,
+			tr("Naming convention for newly added editors.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/editors/new_editor_names_omit_stable",
+			Config.NEW_EDITOR_NAMES_OMIT_STABLE,
+			SettingCheckbox,
+			tr("When importing a stable editor, the \"stable\" label will not be automatically added to the name.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/editors/close_on_editor_launch",
 			Config.AUTO_CLOSE,
 			SettingCheckbox,
-			tr("Close on launch.")
+			tr("Godots will close when an editor is launched.")
 		)),
+		
+		SettingChangeObserved(SettingCfg(
+			"godots/projects/default_project_path",
+			Config.DEFAULT_PROJECTS_PATH,
+			SettingFilePath,
+			tr("The folder where new projects should be created, imported from, or manually scanned for by default.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/projects/enable_project_autoscan",
+			Config.ENABLE_PROJECT_AUTOSCAN,
+			SettingCheckbox,
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/projects/autoscan_project_path",
+			Config.AUTOSCAN_PROJECTS_PATH,
+			SettingFilePath,
+			tr("The folder where new projects should be scanned for (recursively) on startup. Effective only if Project Autoscan is enabled.")
+		)),
+		SettingChangeObserved(SettingCfg(
+			"godots/projects/allow_creating_projects_in_unempty_folders",
+			Config.ALLOW_INSTALL_TO_NOT_EMPTY_DIR,
+			SettingCheckbox,
+			tr("If enabled, projects can be created in folders that are not empty.")
+		)),
+		
 		SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/config/scale",
+			"interface/application/display_scale",
 			Config.SAVED_EDSCALE.bake_default(-1),
 			SettingScale,
 		))),
 		SettingChangeObserved(SettingCfg(
-			"application/config/default_projects_path",
-			Config.DEFAULT_PROJECTS_PATH,
-			SettingFilePath,
-			tr("Default folder to scan/import projects from.")
+			"interface/application/remember_window_size_and_position",
+			Config.REMEMBER_WINDOW_SIZE,
+			SettingCheckbox,
+			tr("Restore the last window size and position on startup.")
 		)),
 		SettingFiltered(SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/config/use_system_titlebar",
+			"interface/application/use_system_titlebar",
 			Config.USE_SYSTEM_TITLE_BAR,
 			SettingCheckbox
 		))), func(): return DisplayServer.has_feature(DisplayServer.FEATURE_EXTEND_TO_TITLE)),
 		SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/config/use_native_file_dialog",
+			"interface/application/use_native_file_dialog",
 			Config.USE_NATIVE_FILE_DIALOG,
 			SettingCheckbox
 		))),
-		SettingChangeObserved(SettingCfg(
-			"application/config/remember_window_rect",
-			Config.REMEMBER_WINDOW_SIZE,
-			SettingCheckbox,
-			tr("Restore last window size and position on startup.")
-		)),
 		
 		SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/theme/preset",
+			"interface/theme/preset",
 			ConfigFileValue.new(
 				Config._cfg, 
 				"theme",
@@ -50,37 +112,6 @@ func _prepare_settings():
 			).bake_default("Default"),
 			SettingThemePreset,
 		))),
-		
-		SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/advanced/downloads_path",
-			Config.DOWNLOADS_PATH,
-			SettingFilePath,
-			tr("Temp dir for downloaded zips.")
-		))),
-		SettingRestartRequired(SettingChangeObserved(SettingCfg(
-			"application/advanced/versions_path",
-			Config.VERSIONS_PATH,
-			SettingFilePath,
-			tr("Dir for downloaded editors.")
-		))),
-		SettingChangeObserved(SettingCfg(
-			"application/advanced/show_orphan_editor_explorer",
-			Config.SHOW_ORPHAN_EDITOR,
-			SettingCheckbox,
-			tr("Check if there are some leaked Godot binaries on the filesystem that can be safely removed. For advanced users.")
-		)),
-		SettingChangeObserved(SettingCfg(
-			"application/advanced/allow_install_to_not_empty_dir",
-			Config.ALLOW_INSTALL_TO_NOT_EMPTY_DIR,
-			SettingCheckbox,
-			tr("By default the project installing is forbidden if the target dir is not empty. To allow it, check the checkbox.")
-		)),
-		SettingChangeObserved(SettingCfg(
-			"application/advanced/check_only_stable_updates",
-			Config.ONLY_STABLE_UPDATES,
-			SettingCheckbox,
-			tr("Will check only stable Godots releases.")
-		)),
 	]
 
 
@@ -609,4 +640,31 @@ func SettingThemePreset(a1, a2, a3, a4):
 		}
 	return ThemePresetOptionButton.new(a1, a2, a3, a4,
 		options, tr("Custom")
+	)
+
+
+func SettingNewEditorNamingConvention(a1, a2, a3, a4):
+	return SettingOptionButton.new(a1, a2, a3, a4,
+		{
+			1: {
+				"name": "Legacy (Pre-1.4)",
+				"value": "",
+			},
+			2: {
+				"name": "\"Godot vX.X.X\"",
+				"value": "Godot v%s"
+			},
+			3: {
+				"name": "\"Godot X.X.X\"",
+				"value": "Godot %s"
+			},
+			4: {
+				"name": "\"vX.X.X\"",
+				"value": "v%s"
+			},
+			5: {
+				"name": "\"X.X.X\"",
+				"value": "%s"
+			},
+		}, tr("Custom")
 	)

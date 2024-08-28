@@ -4,8 +4,13 @@ signal imported(editor_name, editor_path)
 
 @onready var _name_edit: LineEdit = %NameEdit
 @onready var _path_edit: LineEdit = %PathEdit
+@onready var _message_label: Label = %MessageLabel
+@onready var _status_rect: TextureRect = %StatusRect
 @onready var _browse_button: Button = %BrowseButton
 @onready var _file_dialog: FileDialog = $FileDialog
+@onready var action_buttons: Array[Button] = [
+	get_ok_button(),
+]
 
 
 func _ready() -> void:
@@ -24,40 +29,50 @@ func _ready() -> void:
 		else:
 			_file_dialog.current_path = _path_edit.text
 	)
-	_browse_button.icon = get_theme_icon("Load", "EditorIcons")
-	_file_dialog.file_selected.connect(func(dir):
-		_path_edit.text = dir
-		_name_edit.text = utils.guess_editor_name(dir)
-		_update_ok_button()
+	_file_dialog.file_selected.connect(func(dir: String):
+		_set_name_and_path(dir)
+		_validate()
 	)
 	_file_dialog.dir_selected.connect(func(path):
-		_path_edit.text = path
-		_name_edit.text = utils.guess_editor_name(path)
+		_set_name_and_path(path)
 	)
-	_name_edit.text_changed.connect(func(_arg): _update_ok_button())
-	_path_edit.text_changed.connect(func(_arg): _update_ok_button())
+	_name_edit.text_changed.connect(func(_arg): _validate())
+	_path_edit.text_changed.connect(func(_arg): _validate())
 	
 	if OS.has_feature("macos"):
 		_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_DIR
+		_file_dialog.filters = ["*.app"]
 	else:
 		_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		if OS.has_feature("windows"):
+			_file_dialog.filters = ["*.exe"]
 
 
 func init(editor_name, exec_path):
 	_name_edit.text = editor_name
 	_path_edit.text = exec_path
 	
-	_update_ok_button()
+	_validate()
 
 
-func _update_ok_button():
-	var should_be_disabled = _name_edit.text.is_empty() or _path_edit.text.is_empty()
+func _set_name_and_path(path):
+	_name_edit.text = utils.guess_editor_name(path, utils.VersionMatchMode.STRICT_REQUIRE_TWO_COMPONENTS)
+	if Config.NEW_EDITOR_NAMES_OMIT_STABLE.ret():
+		_name_edit.text = _name_edit.text.replace("-stable", "")
+	_path_edit.text = path
+
+
+func _validate():
+	var path = _path_edit.text.strip_edges()
+	if FileAccess.file_exists(path) and (_file_dialog.filters.has("*.%s" % path.get_file().get_extension()) or len(_file_dialog.filters) == 0):
+		if not _name_edit.text.is_empty():
+			utils.set_dialog_status(self, "", utils.DialogStatus.SUCCESS)
+		else:
+			utils.set_dialog_status(self, tr("It would be a good idea to name the editor."), utils.DialogStatus.WARNING)
+		return true
 	
-	if OS.has_feature("windows"):
-		should_be_disabled = should_be_disabled or not _path_edit.text.ends_with(".exe")
-	elif OS.has_feature("macos"):
-		should_be_disabled = should_be_disabled or not _path_edit.text.ends_with(".app")
-	elif OS.has_feature("linux"):
-		should_be_disabled = should_be_disabled or not FileAccess.file_exists(_path_edit.text)
-
-	get_ok_button().disabled = should_be_disabled
+	if len(_file_dialog.filters) > 0:
+		utils.set_dialog_status(self, tr("Please choose a %s file." % utils.combine_strings_into_sentence(_file_dialog.filters)), utils.DialogStatus.ERROR)
+	else:
+		utils.set_dialog_status(self, tr("Please choose a file."), utils.DialogStatus.ERROR)
+	return false

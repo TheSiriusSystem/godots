@@ -24,6 +24,8 @@ func ret(default=null):
 	var value = _cfg.get_value(_section, _key, default) 
 	if _map_return_value:
 		value = _map_return_value.call(value)
+	if typeof(value) == TYPE_STRING and (value.begins_with("res://") or value.begins_with("user://")):
+		value = ProjectSettings.globalize_path(value)
 	return value
 
 

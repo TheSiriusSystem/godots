@@ -97,6 +97,17 @@ class Item:
 		get: return _external_project_info.name
 		set(value): _external_project_info.name = value
 	
+	var display_name:
+		get:
+			if not _external_project_info.is_missing:
+				return _external_project_info.name if not _external_project_info.name.strip_edges().is_empty() else tr("Unnamed Project")
+			else:
+				return tr("Missing Project")
+	
+	var description:
+		get: return _external_project_info.description
+		set(value): _external_project_info.description = value
+	
 	var editor_name:
 		get: return _get_editor_name()
 	
@@ -138,6 +149,9 @@ class Item:
 		set(value): _external_project_info.tags = value
 		get: return _external_project_info.tags
 	
+	var config_version:
+		get: return _external_project_info.config_version
+	
 	var last_modified:
 		get: return _external_project_info.last_modified
 	
@@ -147,9 +161,6 @@ class Item:
 	var version_hint:
 		get: return _external_project_info.version_hint
 		set(value): _external_project_info.version_hint = value
-
-	var has_version_hint: bool:
-		get: return _external_project_info.has_version_hint
 
 	var custom_commands:
 		get: return _get_custom_commands("custom_commands-v2")
@@ -294,9 +305,12 @@ class _ProjectsCache:
 class ExternalProjectInfo extends RefCounted:
 	signal loaded
 	
+	const PROJECT_PLACEHOLDER_NAME = "%s Project"
+	const PROJECT_TAGS_FILENAME = ".project-tags"
+	
 	var icon:
 		get: return _icon
-
+	
 	var name: String:
 		get: return _name
 		set(value):
@@ -305,16 +319,37 @@ class ExternalProjectInfo extends RefCounted:
 			_name = value
 			var cfg = ConfigFile.new()
 			var err = cfg.load(_project_path)
-			if not err:
+			if err == OK:
 				cfg.set_value(
 					"application", 
-					"config/name", 
-					_name
+					"config/name" if config_version != 0 else "name", 
+					_name if not _name.is_empty() else null
 				)
-				cfg.save(_project_path)
+				utils.save_project_config(cfg, version, _project_path)
 	
-	var has_version_hint: bool:
-		get: return _version_hint != null
+	var description: String:
+		get: return _description
+		set(value):
+			if is_missing:
+				return
+			_description = value
+			var cfg = ConfigFile.new()
+			var err = cfg.load(_project_path)
+			if err == OK:
+				var cfg_value = _description if not _description.is_empty() else null
+				if _config_version != 0:
+					cfg.set_value(
+						"application", 
+						"config/description", 
+						cfg_value
+					)
+				else:
+					cfg.set_value(
+						"godots", 
+						"description", 
+						cfg_value
+					)
+				utils.save_project_config(cfg, version, _project_path)
 	
 	var version_hint: String:
 		get: return '' if _version_hint == null else _version_hint
@@ -324,14 +359,24 @@ class ExternalProjectInfo extends RefCounted:
 			_version_hint = value
 			var cfg = ConfigFile.new()
 			var err = cfg.load(_project_path)
-			if not err:
+			if err == OK:
 				cfg.set_value(
 					"godots", 
 					"version_hint", 
-					_version_hint
+					_version_hint if not _version_hint.is_empty() else null
 				)
-				cfg.save(_project_path)
-
+				utils.save_project_config(cfg, version, _project_path)
+	
+	var version: PackedInt32Array:
+		get: return utils.extract_version_from_string(version_hint)
+	
+	var config_version:
+		get: return _config_version
+		set(value):
+			if is_missing:
+				return
+			_config_version = value
+	
 	var last_modified:
 		get: return _last_modified
 	
@@ -342,23 +387,36 @@ class ExternalProjectInfo extends RefCounted:
 		get: return _is_missing
 	
 	var tags:
+		get: return Set.of(_tags).values()
 		set(value):
-			_tags = value
 			if is_missing:
 				return
+			_tags = value
 			var cfg = ConfigFile.new()
 			var err = cfg.load(_project_path)
-			if not err:
+			if err == OK:
 				var set = Set.new()
 				for tag in _tags:
 					set.append(tag.to_lower())
-				cfg.set_value(
-					"application", 
-					"config/tags", 
-					PackedStringArray(set.values())
-				)
-				cfg.save(_project_path)
-		get: return Set.of(_tags).values()
+				var final_tags = set.values()
+				if _config_version >= 5:
+					cfg.set_value(
+						"application", 
+						"config/tags", 
+						PackedStringArray(final_tags)
+					)
+					utils.save_project_config(cfg, version, _project_path)
+				else:
+					# [Sirius] Not all Godot 3.x versions support custom properties of any type and
+					# PackedStringArray is PoolStringArray in Godot 3.x, StringArray in Godot 2.x.
+					# This is a version-agnostic solution to tagging old projects.
+					var tags_path = _project_path.get_base_dir().path_join(PROJECT_TAGS_FILENAME)
+					if final_tags.size() > 0:
+						var file_to = FileAccess.open(tags_path, FileAccess.WRITE)
+						file_to.store_string(var_to_str(final_tags))
+						file_to.close()
+					else:
+						DirAccess.remove_absolute(tags_path)
 	
 	var features:
 		get: return _features
@@ -367,7 +425,8 @@ class ExternalProjectInfo extends RefCounted:
 	var _project_path
 	var _default_icon
 	var _icon
-	var _name = "Loading..."
+	var _name = ""
+	var _description = ""
 	var _last_modified
 	var _is_missing = false
 	var _tags = []
@@ -388,15 +447,34 @@ class ExternalProjectInfo extends RefCounted:
 		var cfg = ConfigFile.new()
 		var err = cfg.load(_project_path)
 		
-		_name = cfg.get_value("application", "config/name", "Missing Project")
-		_tags = cfg.get_value("application", "config/tags", [])
-		_features = cfg.get_value("application", "config/features", [])
-		_config_version = cfg.get_value("", "config_version", -1)
-		_has_mono_section = cfg.has_section("mono")
-		if cfg.has_section_key("godots", "version_hint"):
-			_version_hint = cfg.get_value("godots", "version_hint")
-			if _version_hint == '':
-				_version_hint = null
+		match utils.PROJECT_CONFIG_FILENAMES.find(_project_path.get_file()):
+			1:
+				# Godot 1-2 (engine.cfg)
+				_name = cfg.get_value("application", "name", "")
+				_description = cfg.get_value("godots", "description", "")
+				_config_version = 0
+			_:
+				# Godot 3+ (project.godot)
+				_name = cfg.get_value("application", "config/name", "")
+				_description = cfg.get_value("application", "config/description", "")
+				_config_version = cfg.get_value("", "config_version", -1)
+				if _config_version >= 5:
+					_tags = cfg.get_value("application", "config/tags", PackedStringArray())
+					_features = cfg.get_value("application", "config/features", PackedStringArray())
+				_has_mono_section = cfg.has_section("mono")
+		if _config_version <= 4:
+			var project_tags_file = _project_path.get_base_dir().path_join(PROJECT_TAGS_FILENAME)
+			if FileAccess.file_exists(project_tags_file):
+				var file_contents = str_to_var(FileAccess.get_file_as_string(project_tags_file))
+				if typeof(file_contents) == TYPE_ARRAY:
+					var is_valid = true
+					for element in file_contents:
+						if typeof(element) != TYPE_STRING:
+							is_valid = false
+							break
+					if is_valid:
+						_tags = PackedStringArray(file_contents)
+		_version_hint = cfg.get_value("godots", "version_hint", "")
 		
 		_last_modified = FileAccess.get_modified_time(_project_path)
 		if with_icon:
@@ -436,18 +514,19 @@ class ExternalProjectInfo extends RefCounted:
 			if _version_hint != null:
 				if VersionHint.same_version(_version_hint, label):
 					return true
+			var version = utils.extract_version_from_string(label)
 			if _config_version == 3:
-				return label.contains("3.0")
+				return version[0] == 3
 			elif _config_version == 4:
-				return not label.contains("3.0") and not label.contains("4.")
-			elif _config_version > 4:
-				var is_version = func(feature): 
+				return version[0] == 3 and version[1] >= 1
+			elif _config_version >= 5:
+				var is_version = func(feature):
 					return feature.contains(".") and feature.substr(0, 3).is_valid_float()
 				var version_tags = Array(features).filter(is_version)
 				if len(version_tags) > 0:
 					return label.contains(version_tags[0])
 				else:
-					return label.contains("4.")
+					return version[0] >= 4
 			else:
 				return false
 		

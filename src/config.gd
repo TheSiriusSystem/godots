@@ -7,7 +7,7 @@ signal saved
 var AUTO_EDSCALE = 1
 var EDSCALE = 1
 var AGENT = ""
-const VERSION = "v1.3.stable"
+const VERSION = "v1.4.dev"
 const APP_CONFIG_PATH = "user://godots.cfg"
 const EDITORS_CONFIG_PATH = "user://editors.cfg"
 const PROJECTS_CONFIG_PATH = "user://projects.cfg"
@@ -19,7 +19,13 @@ const RELEASES_URL = "https://github.com/MakovWait/godots/releases"
 const RELEASES_LATEST_API_ENDPOINT = "https://api.github.com/repos/MakovWait/godots/releases/latest"
 const RELEASES_API_ENDPOINT = "https://api.github.com/repos/MakovWait/godots/releases"
 
+const _APPLICATION_SECTION_NAME = "application"
+const _EDITORS_SECTION_NAME = "editors"
+const _PROJECTS_SECTION_NAME = "projects"
+const _INTERFACE_SECTION_NAME = "interface"
 const _EDITOR_PROXY_SECTION_NAME = "theme"
+const _RANDOM_PROJECT_NAMES_SECTION_NAME = "random-project-names"
+const _CUSTOM_COMMANDS_SECTION_NAME = "global-custom-commands"
 
 var _random_project_names = RandomProjectNames.new()
 var _cfg = ConfigFile.new()
@@ -37,48 +43,129 @@ var AGENT_HEADER:
 	get: return "User-Agent: %s" % AGENT
 
 
-var VERSIONS_PATH = ConfigFileValue.new(
+var CACHE_DIR_PATH = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
-	"versions_path",
-	DEFAULT_VERSIONS_PATH
+	_APPLICATION_SECTION_NAME, 
+	"cache_path",
+	ProjectSettings.globalize_path(DEFAULT_CACHE_DIR_PATH)
 ).map_return_value(_simplify_path): 
 	set(_v): _readonly()
 
 
 var DOWNLOADS_PATH = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
-	"downloads_path",
-	DEFAULT_DOWNLOADS_PATH
-).map_return_value(_simplify_path): 
-	set(_v): _readonly()
-
-
-var CACHE_DIR_PATH = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"cache_dir_path",
-	DEFAULT_CACHE_DIR_PATH
+	_APPLICATION_SECTION_NAME, 
+	"download_path",
+	ProjectSettings.globalize_path(DEFAULT_DOWNLOADS_PATH)
 ).map_return_value(_simplify_path): 
 	set(_v): _readonly()
 
 
 var UPDATES_PATH = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
-	"updates_path",
-	DEFAULT_UPDATES_PATH
+	_APPLICATION_SECTION_NAME, 
+	"update_unzip_path",
+	ProjectSettings.globalize_path(DEFAULT_UPDATES_PATH)
 ).map_return_value(_simplify_path): 
+	set(_v): _readonly()
+
+
+var ONLY_STABLE_UPDATES = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_APPLICATION_SECTION_NAME, 
+	"only_stable_updates",
+	true
+): 
+	set(_v): _readonly()
+
+
+var VERSIONS_PATH = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_EDITORS_SECTION_NAME, 
+	"default_editor_path",
+	ProjectSettings.globalize_path(DEFAULT_VERSIONS_PATH)
+).map_return_value(_simplify_path): 
+	set(_v): _readonly()
+
+
+var NEW_EDITOR_NAME_FORMAT = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_EDITORS_SECTION_NAME, 
+	"new_editor_naming_convention",
+	"Godot v%s"
+): 
+	set(_v): _readonly()
+
+
+var NEW_EDITOR_NAMES_OMIT_STABLE = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_EDITORS_SECTION_NAME, 
+	"new_editor_names_omit_stable",
+	false
+): 
+	set(_v): _readonly()
+
+
+var AUTO_CLOSE = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_EDITORS_SECTION_NAME, 
+	"close_on_editor_launch",
+	false
+): 
 	set(_v): _readonly()
 
 
 var DEFAULT_PROJECTS_PATH = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
-	"projects_path",
+	_PROJECTS_SECTION_NAME, 
+	"default_project_path",
 	OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS)
 ).map_return_value(_simplify_path): 
+	set(_v): _readonly()
+
+
+var ENABLE_PROJECT_AUTOSCAN = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_PROJECTS_SECTION_NAME, 
+	"enable_project_autoscan",
+	false
+): 
+	set(_v): _readonly()
+
+
+var AUTOSCAN_PROJECTS_PATH = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_PROJECTS_SECTION_NAME, 
+	"autoscan_project_path",
+	OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS)
+).map_return_value(_simplify_path): 
+	set(_v): _readonly()
+
+
+var ALLOW_INSTALL_TO_NOT_EMPTY_DIR = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_PROJECTS_SECTION_NAME, 
+	"allow_creating_in_unempty_dir",
+	false
+): 
+	set(_v): _readonly()
+
+
+var DEFAULT_EDITOR_TAGS = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_EDITORS_SECTION_NAME, 
+	"default_editor_tags",
+	["stable", "dev", "alpha", "beta", "release_candidate", "custom_build", "c#"]
+): 
+	set(_v): _readonly()
+
+
+var DEFAULT_PROJECT_TAGS = ConfigFileValue.new(
+	_cfg_auto_save, 
+	_PROJECTS_SECTION_NAME, 
+	"default_project_tags",
+	["game", "application", "plugin"]
+): 
 	set(_v): _readonly()
 
 
@@ -90,37 +177,10 @@ var SAVED_EDSCALE = ConfigFileValue.new(
 	set(_v): _readonly()
 
 
-var DEFAULT_EDITOR_TAGS = ConfigFileValue.new(
+var REMEMBER_WINDOW_SIZE = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
-	"default_editor_tags",
-	["dev", "rc", "alpha", "4.x", "3.x", "stable", "mono"]
-): 
-	set(_v): _readonly()
-
-
-var DEFAULT_PROJECT_TAGS = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"default_project_tags",
-	[]
-): 
-	set(_v): _readonly()
-
-
-var AUTO_CLOSE = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"auto_close",
-	false
-): 
-	set(_v): _readonly()
-
-
-var SHOW_ORPHAN_EDITOR = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"show_orphan_editor",
+	_INTERFACE_SECTION_NAME, 
+	"remember_window_size_and_position",
 	false
 ): 
 	set(_v): _readonly()
@@ -128,7 +188,7 @@ var SHOW_ORPHAN_EDITOR = ConfigFileValue.new(
 
 var USE_SYSTEM_TITLE_BAR = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
+	_INTERFACE_SECTION_NAME, 
 	"use_system_titlebar",
 	false
 ): 
@@ -137,7 +197,7 @@ var USE_SYSTEM_TITLE_BAR = ConfigFileValue.new(
 
 var USE_NATIVE_FILE_DIALOG = ConfigFileValue.new(
 	_cfg_auto_save,
-	"app",
+	_INTERFACE_SECTION_NAME,
 	"use_native_file_dialog",
 	false
 ):
@@ -146,43 +206,16 @@ var USE_NATIVE_FILE_DIALOG = ConfigFileValue.new(
 
 var LAST_WINDOW_RECT = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"app", 
+	_INTERFACE_SECTION_NAME, 
 	"last_window_rect",
 	Rect2i()
 ): 
 	set(_v): _readonly()
 
 
-var REMEMBER_WINDOW_SIZE = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"remember_window_size",
-	false
-): 
-	set(_v): _readonly()
-
-
-var ALLOW_INSTALL_TO_NOT_EMPTY_DIR = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"allow_install_to_not_empty_dir",
-	false
-): 
-	set(_v): _readonly()
-
-
-var ONLY_STABLE_UPDATES = ConfigFileValue.new(
-	_cfg_auto_save, 
-	"app", 
-	"only_stable_updates",
-	true
-): 
-	set(_v): _readonly()
-
-
 var RANDOM_PROJECT_PREFIXES = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"random-project-names", 
+	_RANDOM_PROJECT_NAMES_SECTION_NAME, 
 	"prefixes",
 	[]
 ): 
@@ -191,7 +224,7 @@ var RANDOM_PROJECT_PREFIXES = ConfigFileValue.new(
 
 var RANDOM_PROJECT_TOPICS = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"random-project-names", 
+	_RANDOM_PROJECT_NAMES_SECTION_NAME, 
 	"topics",
 	[]
 ): 
@@ -200,7 +233,7 @@ var RANDOM_PROJECT_TOPICS = ConfigFileValue.new(
 
 var RANDOM_PROJECT_SUFFIXES = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"random-project-names", 
+	_RANDOM_PROJECT_NAMES_SECTION_NAME, 
 	"suffixes",
 	[]
 ): 
@@ -209,7 +242,7 @@ var RANDOM_PROJECT_SUFFIXES = ConfigFileValue.new(
 
 var GLOBAL_CUSTOM_COMMANDS_PROJECTS = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"global-custom-commands-v2", 
+	_CUSTOM_COMMANDS_SECTION_NAME, 
 	"projects",
 	[]
 ): 
@@ -218,7 +251,7 @@ var GLOBAL_CUSTOM_COMMANDS_PROJECTS = ConfigFileValue.new(
 
 var GLOBAL_CUSTOM_COMMANDS_EDITORS = ConfigFileValue.new(
 	_cfg_auto_save, 
-	"global-custom-commands-v2", 
+	_CUSTOM_COMMANDS_SECTION_NAME, 
 	"editors",
 	[]
 ): 

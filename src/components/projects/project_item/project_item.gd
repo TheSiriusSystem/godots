@@ -6,7 +6,13 @@ signal manage_tags_requested
 signal duplicate_requested
 signal tag_clicked(tag)
 
-@export var _rename_dialog_scene: PackedScene
+const PROJECT_FEATURES: PackedStringArray = [
+	"1.x-2.x", # engine.cfg has no versioning so this is a catch-all.
+	"C#",
+	"Double Precision",
+]
+
+@export var _edit_dialog_scene: PackedScene
 
 @onready var _path_label: Label = %PathLabel
 @onready var _title_label: Label = %TitleLabel
@@ -18,8 +24,7 @@ signal tag_clicked(tag)
 @onready var _project_warning: TextureRect = %ProjectWarning
 @onready var _tag_container: HBoxContainer = %TagContainer
 @onready var _project_features: Label = %ProjectFeatures
-@onready var _info_body = %InfoBody
-@onready var _info_v_box = %InfoVBox
+@onready var _description_label: Label = %DescriptionLabel
 @onready var _actions_h_box = %ActionsHBox
 @onready var _title_container: HBoxContainer = %TitleContainer
 @onready var _actions_container: HBoxContainer = %ActionsContainer
@@ -37,7 +42,6 @@ var _sort_data = {
 
 func _ready() -> void:
 	super._ready()
-	_info_body.add_theme_constant_override("separation", int(-12 * Config.EDSCALE))
 	_project_features.add_theme_font_override("font", get_theme_font("title", "EditorFonts"))
 	_project_features.add_theme_color_override(
 		"font_color", get_theme_color("warning_color", "Editor")
@@ -162,9 +166,9 @@ func _fill_actions(item: Projects.Item):
 
 	var rename = Action.from_dict({
 		"key": "rename",
-		"icon": Action.IconTheme.new(self, "Rename", "EditorIcons"),
+		"icon": Action.IconTheme.new(self, "GDScript", "EditorIcons"),
 		"act": _on_rename.bind(item),
-		"label": tr("Rename"),
+		"label": tr("Settings"),
 	})
 
 	var bind_editor = Action.from_dict({
@@ -214,16 +218,26 @@ func _fill_data(item: Projects.Item):
 		
 	_project_warning.visible = item.has_invalid_editor
 	_favorite_button.button_pressed = item.favorite
-	_title_label.text = item.name
+	_title_label.text = item.display_name
+	_description_label.text = item.description if not item.description.is_empty() else tr("No Description")
+	_description_label.modulate = Color(1, 1, 1, 1 if not item.description.is_empty() else 0.667)
+	tooltip_text = item.description
 	_editor_path_label.text = item.editor_name
 	_path_label.text = item.path
 	_icon.texture = item.icon
 	_tag_container.set_tags(item.tags)
-	_set_features(item.features)
+	if item.config_version == 0:
+		_set_features(["1.x-2.x"])
+	elif item.config_version == 3:
+		_set_features(["3.0"])
+	elif item.config_version == 4:
+		_set_features(["3.1+"])
+	else:
+		_set_features(item.features)
 	_tags = item.tags
 	
 	_sort_data.favorite = item.favorite
-	_sort_data.name = item.name
+	_sort_data.name = item.display_name
 	_sort_data.path = item.path
 	_sort_data.last_modified = item.last_modified
 	_sort_data.tag_sort_string = "".join(item.tags)
@@ -274,19 +288,15 @@ func _get_commands(item: Projects.Item) -> CommandViewer.Commands:
 
 
 func _set_features(features):
-	var features_to_print = Array(features).filter(func(x): return _is_version(x) or x == "C#")
+	var features_to_print = Array(features).filter(func(x): return utils.extract_version_from_string(x, true) or PROJECT_FEATURES.has(x))
 	if len(features_to_print) > 0:
 		var str = ", ".join(features_to_print)
 		_project_features.text = str
 #		_project_features.custom_minimum_size = Vector2(25 * 15, 10) * Config.EDSCALE
 		if settings.is_show_features():
-			_project_features.show()
+			_project_features.visible = true
 	else:
-		_project_features.hide()
-
-
-func _is_version(feature: String):
-	return feature.contains(".") and feature.substr(0, 3).is_valid_float()
+		_project_features.visible = false
 
 
 func _on_rebind_editor(item):
@@ -304,21 +314,18 @@ func _on_rebind_editor(item):
 	var options = OptionButton.new()
 	hbox.add_child(options)
 	
-	if item.has_version_hint:
-		var hbox2 = HBoxContainer.new()
-		hbox2.modulate = Color(0.5, 0.5, 0.5, 0.5)
-		hbox2.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_child(hbox2)
-		
-		var version_hint_title = Label.new()
-		version_hint_title.text = tr("version hint:")
-		hbox2.add_child(version_hint_title)
+	var version_string = utils.version_to_string(item.version_hint, true)
+	if not version_string.is_empty():
+		var control = Control.new()
+		control.custom_minimum_size.y = 8
+		vbox.add_child(control)
 		
 		var version_hint_value = Label.new()
-		version_hint_value.text = item.version_hint
-		hbox2.add_child(version_hint_value)
-	
-	vbox.add_spacer(false)
+		version_hint_value.modulate = Color(1.0, 1.0, 1.0, 0.701961)
+		version_hint_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		version_hint_value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		version_hint_value.text = "%s: %s" % [tr("version hint"), version_string]
+		vbox.add_child(version_hint_value)
 	
 	title.text = "%s: " % tr("Editor")
 	
@@ -344,13 +351,14 @@ func _on_rebind_editor(item):
 
 
 func _on_rename(item):
-	var dialog = _rename_dialog_scene.instantiate()
+	var dialog = _edit_dialog_scene.instantiate()
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.init(item.name, item.version_hint)
-	dialog.editor_renamed.connect(func(new_name, version_hint):
+	dialog.init(item.name, item.description, item.version_hint)
+	dialog.settings_changed.connect(func(new_name, new_description, new_version_hint):
 		item.name = new_name
-		item.version_hint = version_hint
+		item.description = new_description
+		item.version_hint = new_version_hint
 		edited.emit()
 	)
 
@@ -440,4 +448,3 @@ class RunButton extends Button:
 		)
 		if item.has_invalid_editor:
 			tooltip_text = tr("Bind editor first.")
-

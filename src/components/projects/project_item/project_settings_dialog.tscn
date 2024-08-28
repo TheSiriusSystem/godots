@@ -1,25 +1,26 @@
-[gd_scene load_steps=2 format=3 uid="uid://cetwb5xs7wck5"]
+[gd_scene load_steps=2 format=3 uid="uid://cm60akh87pj0t"]
 
-[ext_resource type="Script" path="res://src/components/editors/local/editor_import/editor_import.gd" id="1_xe8i2"]
+[ext_resource type="Script" path="res://src/components/projects/project_item/project_settings_dialog.gd" id="1_y23y6"]
 
-[node name="EditorImport" type="ConfirmationDialog"]
-title = "Import Editor"
+[node name="ProjectSettingsDialog" type="ConfirmationDialog"]
+title = "Project Settings"
 position = Vector2i(0, 36)
-size = Vector2i(500, 192)
+size = Vector2i(500, 337)
 visible = true
-ok_button_text = "Import"
-script = ExtResource("1_xe8i2")
+ok_button_text = "Edit"
+script = ExtResource("1_y23y6")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 492.0
-offset_bottom = 143.0
+offset_bottom = 288.0
 theme_override_constants/separation = 1
 
 [node name="Label" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Editor Name:"
+text = "Name:"
 
 [node name="NameEdit" type="LineEdit" parent="VBoxContainer"]
 unique_name_in_owner = true
@@ -27,35 +28,38 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Label2" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Editor Path:"
+text = "Description:"
+
+[node name="DescriptionEdit" type="TextEdit" parent="VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+wrap_mode = 1
+
+[node name="Label3" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Version Hint: "
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="PathEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+[node name="VersionHintEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+placeholder_text = "x.y(.z)(.w)(-stage)"
 
 [node name="StatusRect" type="TextureRect" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 stretch_mode = 3
 
-[node name="BrowseButton" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Browse"
-
 [node name="MessageLabel" type="Label" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="FileDialog" type="FileDialog" parent="."]
-title = "Open a File or Directory"
-ok_button_text = "Open"
-file_mode = 3
-access = 2

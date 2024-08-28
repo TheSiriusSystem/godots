@@ -105,7 +105,7 @@ func _setup_checkboxes():
 	
 	_check_box_container.add_child(
 		inverted_checkbox.call(
-			tr("mono"), 
+			tr("C#"), 
 			RowFilter.new(contains_any.call(["mono"])),
 			_remote_editors_checkbox_checked.get_value("mono", true)
 		)
@@ -145,33 +145,6 @@ func _setup_checkboxes():
 					_remote_editors_checkbox_checked.get_value("%s-bit" % bit, true)
 				)
 			)
-
-	_check_box_container.add_child(
-		inverted_checkbox.call(
-			tr("4.x"), 
-			RowFilter.new(func(row: RemoteEditorsTreeDataSource.FilterTarget): 
-				return row.is_possible_version_folder() and row.get_name().begins_with("4")),
-			_remote_editors_checkbox_checked.get_value("4.x", true)
-		)
-	)
-
-	_check_box_container.add_child(
-		inverted_checkbox.call(
-			tr("3.x"), 
-			RowFilter.new(func(row: RemoteEditorsTreeDataSource.FilterTarget): 
-				return row.is_possible_version_folder() and row.get_name().begins_with("3")),
-			_remote_editors_checkbox_checked.get_value("3.x", true)
-		)
-	)
-
-	_check_box_container.add_child(
-		inverted_checkbox.call(
-			tr("x.x"), 
-			RowFilter.new(func(row: RemoteEditorsTreeDataSource.FilterTarget): 
-				return row.is_possible_version_folder() and not (row.get_name().begins_with("4") or row.get_name().begins_with("3"))),
-			_remote_editors_checkbox_checked.get_value("x.x", false)
-		)
-	)
 
 
 func _delegate_of(item: TreeItem) -> RemoteEditorsTreeDataSource.Item:

@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3 uid="uid://vj6pjg4bd2ja"]
+
+[ext_resource type="Script" path="res://src/components/editors/local/editor_item/editor_settings_dialog.gd" id="1_pj6gv"]
+
+[node name="EditorSettingsDialog" type="ConfirmationDialog"]
+title = "Editor Settings"
+position = Vector2i(0, 36)
+size = Vector2i(500, 217)
+visible = true
+ok_button_text = "Edit"
+script = ExtResource("1_pj6gv")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 492.0
+offset_bottom = 168.0
+theme_override_constants/separation = 1
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Name: "
+
+[node name="NameEdit" type="LineEdit" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label2" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Version Hint: "
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="VersionHintEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "x.y(.z)(.w)(-stage)"
+
+[node name="StatusRect" type="TextureRect" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+stretch_mode = 3
+
+[node name="AutodetectVersionButton" type="Button" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Autodetect"
+
+[node name="MessageLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScModeSwitch" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/ScModeSwitch"]
+layout_mode = 2
+text = "Self-Contained Mode:"
+
+[node name="ScModeCheckBox" type="CheckBox" parent="VBoxContainer/ScModeSwitch"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AutodetectFailedDialog" type="AcceptDialog" parent="."]
+size = Vector2i(335, 100)
+dialog_text = "Editor name should contain at least \"x.y\"."

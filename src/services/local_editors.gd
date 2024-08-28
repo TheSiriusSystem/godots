@@ -30,7 +30,7 @@ class List extends RefCounted:
 		_connect_name_changed(editor)
 		editor.name = name
 		editor.favorite = false
-		editor.extra_arguments = ""
+		editor.extra_arguments = []
 		_editors[editor_path] = editor
 		return editor
 	
@@ -112,6 +112,13 @@ class Item extends Object:
 			_section.set_value("name", value)
 			name_changed.emit(value)
 	
+	var display_name: String:
+		get:
+			if is_valid:
+				return name if not name.strip_edges().is_empty() else tr("Unnamed Editor")
+			else:
+				return tr("Missing Editor")
+	
 	var extra_arguments: PackedStringArray:
 		get: return _section.get_typed_value(
 			"extra_arguments", 
@@ -135,12 +142,12 @@ class Item extends Object:
 	var version_hint: String:
 		get: return _section.get_value(
 			"version_hint", 
-			self.name.to_lower()
-				.replace("godot", "")
-				.strip_edges()
-				.replace(" ", "-")
+			utils.version_to_string(name, true)
 		)
 		set(value): _section.set_value("version_hint", value)
+	
+	var version:
+		get: return utils.extract_version_from_string(version_hint, true)
 
 	var custom_commands:
 		get: return _get_custom_commands("custom_commands-v2")
@@ -188,6 +195,8 @@ class Item extends Object:
 	func is_self_contained():
 		if not is_valid:
 			return false
+		if version and version[0] <= 1:
+			return null
 		var sub_file_exists = func(file):
 			return FileAccess.file_exists(path.get_base_dir().path_join(file))
 		return sub_file_exists.call("_sc_") or sub_file_exists.call("._sc_")
@@ -222,15 +231,11 @@ class Item extends Object:
 		return cfg_folder.path_join(cfg_file_name)
 	
 	func get_cfg_file_name() -> String:
-		var version = get_version()
-		if version.is_empty():
+		if version[0] <= 1:
 			return ""
-		if version.begins_with("3"):
-			return "editor_settings-3.tres"
-		elif version.begins_with("4"):
-			return "editor_settings-4.tres"
-		else:
-			return ""
+		if version[0] == 2:
+			return "editor_settings.%s" % ["xml" if version[1] == 0 else "tres"]
+		return "editor_settings-%s.tres" % str(version[0])
 	
 	func _bin_path() -> String:
 		var process_path
@@ -256,7 +261,7 @@ class Item extends Object:
 				'name': 'Run',
 				'icon': 'Play',
 				'path': '{{EDITOR_PATH}}',
-				'args': ['-p'],
+				'args': ['-p 0x0'] if version and version[0] <= 2 else ['-p'],
 				'allowed_actions': [
 					CommandViewer.Actions.EXECUTE, 
 					CommandViewer.Actions.EDIT, 
@@ -264,9 +269,6 @@ class Item extends Object:
 				]
 			})
 		return commands
-	
-	func _to_string() -> String:
-		return "%s (%s)" % [name, VersionHint.parse(version_hint)]
 
 
 class Selector:

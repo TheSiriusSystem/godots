@@ -6,7 +6,7 @@
 [node name="ManageTags" type="ConfirmationDialog"]
 title = "Manage Tags"
 position = Vector2i(0, 36)
-size = Vector2i(295, 194)
+size = Vector2i(295, 167)
 visible = true
 script = ExtResource("1_teu6l")
 _tag_scene = ExtResource("2_lc67g")
@@ -15,11 +15,13 @@ _tag_scene = ExtResource("2_lc67g")
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 287.0
-offset_bottom = 145.0
+offset_bottom = 118.0
+theme_override_constants/separation = 1
 
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
+text = "Item Tags"
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="VBoxContainer"]
@@ -54,19 +56,36 @@ layout_mode = 2
 
 [node name="CreateTagDialog" type="ConfirmationDialog" parent="."]
 title = "Create New Tag"
+position = Vector2i(0, 36)
+size = Vector2i(407, 136)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CreateTagDialog"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 399.0
+offset_bottom = 87.0
+theme_override_constants/separation = 1
 
 [node name="Label" type="Label" parent="CreateTagDialog/VBoxContainer"]
 layout_mode = 2
 text = "Tags are capitalized automatically when displayed."
+horizontal_alignment = 1
 
-[node name="NewTagNameEdit" type="LineEdit" parent="CreateTagDialog/VBoxContainer"]
-unique_name_in_owner = true
+[node name="HBoxContainer" type="HBoxContainer" parent="CreateTagDialog/VBoxContainer"]
 layout_mode = 2
 
-[node name="TagErrorLabel" type="Label" parent="CreateTagDialog/VBoxContainer"]
+[node name="NewTagNameEdit" type="LineEdit" parent="CreateTagDialog/VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatusRect" type="TextureRect" parent="CreateTagDialog/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+stretch_mode = 3
+
+[node name="MessageLabel" type="Label" parent="CreateTagDialog/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1

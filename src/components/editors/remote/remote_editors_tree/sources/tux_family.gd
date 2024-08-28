@@ -92,19 +92,20 @@ class RemoteTreeItemTuxFamily extends RemoteEditorsTreeDataSource.Item:
 	
 	func get_children() -> Array[RemoteEditorsTreeDataSource.Item]:
 		var result: Array[RemoteEditorsTreeDataSource.Item] = []
-		for child in _item.get_children():
-			if child.has_meta("delegate"):
-				result.append(child.get_meta("delegate"))
+		if _item.is_instance_valid():
+			for child in _item.get_children():
+				if child.has_meta("delegate"):
+					result.append(child.get_meta("delegate"))
 		return result
 	
 	func handle_button_clicked(col, id, mouse):
-		if not _item.has_meta("file_name"): return
+		if not _item.is_instance_valid() or not _item.has_meta("file_name"): return
 		var file_name = _item.get_meta("file_name")
 		var url = _restore_url(_item)
 		_assets.download(url, file_name)
 
 	func update_visibility(filters):
-		if _item.has_meta("row"):
+		if _item.is_instance_valid() and _item.has_meta("row"):
 			var row = _item.get_meta("row")
 			_item.visible = _should_be_visible(row, filters)
 	

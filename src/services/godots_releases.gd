@@ -41,7 +41,7 @@ class Default extends I:
 			release = latest.value
 		elif len(_data) > 0:
 			release = _data[0]
-		if release != null and release.tag_name != Config.VERSION:
+		if typeof(release) == TYPE_DICTIONARY and release.has("tag_name") and release.tag_name != Config.VERSION:
 			release._mark_as_ready_to_update()
 		_fetched = true
 
@@ -59,7 +59,7 @@ class Default extends I:
 			else:
 				var json = await _src.async_recent()
 				release = _to_release_or_null(json)
-			return release.tag_name != Config.VERSION
+			return typeof(release) == TYPE_DICTIONARY and release.has("tag_name") and release.tag_name != Config.VERSION
 
 	func all() -> Array[Release]:
 		return _data

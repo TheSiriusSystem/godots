@@ -6,7 +6,10 @@ signal manage_tags_requested
 signal tag_clicked(tag)
 
 
-@export var _rename_dialog_scene: PackedScene
+const NO_VERSION_TEXT = "Unversioned"
+
+
+@export var _edit_dialog_scene: PackedScene
 @export var _view_owners_dialog_scene: PackedScene
 @export var _add_extra_arguments_scene: PackedScene
 
@@ -14,6 +17,8 @@ signal tag_clicked(tag)
 @onready var _title_label: Label = %TitleLabel
 @onready var _explore_button: Button = %ExploreButton
 @onready var _favorite_button: TextureButton = %FavoriteButton
+@onready var _icon: TextureRect = $Icon
+@onready var _version_label: Label = %VersionLabel
 @onready var _tag_container: HBoxContainer = %TagContainer
 @onready var _editor_features = %EditorFeatures
 @onready var _actions_h_box = %ActionsHBox
@@ -55,20 +60,17 @@ func init(item: LocalEditors.Item):
 		_sort_data.tag_sort_string = "".join(item.tags)
 	)
 	
-	_title_label.text = item.name
+	_title_label.text = item.display_name
 	_path_label.text = item.path
+	update_version_elements(item)
 	_favorite_button.button_pressed = item.favorite
 	_tag_container.set_tags(item.tags)
 	_tags = item.tags
 	
-	if item.is_self_contained():
-		_editor_features.text = tr("Self-contained")
-		_editor_features.show()
-	else:
-		_editor_features.hide()
+	update_self_contained_marker(item)
 
 	_sort_data.favorite = item.favorite
-	_sort_data.name = item.name
+	_sort_data.name = item.display_name
 	_sort_data.path = item.path
 	_sort_data.tag_sort_string = "".join(item.tags)
 	
@@ -90,7 +92,7 @@ func _setup_actions_view(item: LocalEditors.Item):
 	var action_views = EditorItemActions.Menu.new(
 		_actions.without(['view-command']).all(), 
 		settings, 
-		CustomCommandsPopupItems.Self.new(
+		CustomCommandsPopupItems.Self.new(	
 			_actions.by_key('view-command'),
 			_get_commands(item)
 		)
@@ -151,9 +153,9 @@ func _fill_actions(item: LocalEditors.Item):
 	
 	var rename = Action.from_dict({
 		"key": "rename",
-		"icon": Action.IconTheme.new(self, "Rename", "EditorIcons"),
+		"icon": Action.IconTheme.new(self, "GDScript", "EditorIcons"),
 		"act": _on_rename.bind(item),
-		"label": tr("Rename"),
+		"label": tr("Settings"),
 	})
 
 	var manage_tags = Action.from_dict({
@@ -249,20 +251,48 @@ func _get_commands(item) -> CommandViewer.Commands:
 	return commands
 
 
+func update_version_elements(item):
+	var version_string = utils.version_to_string(item.version_hint, true)
+	_version_label.text = (tr("Version ") + version_string) if not version_string.is_empty() else NO_VERSION_TEXT
+	_version_label.modulate = Color(1, 1, 1, 1 if _version_label.text != NO_VERSION_TEXT else 0.667)
+	if not item.version or item.version[0] >= 3:
+		_icon.texture = preload("res://assets/editor_icon_3.svg")
+	elif item.version[0] <= 2:
+		_icon.texture = preload("res://assets/editor_icon_1.svg")
+
+
+func update_self_contained_marker(item):
+	if  item.is_self_contained():
+		_editor_features.text = tr("Self-contained")
+		_editor_features.visible = true
+	else:
+		_editor_features.visible = false
+
+
 func _on_run_editor(item):
 	item.run()
 	AutoClose.close_if_should()
 
 
 func _on_rename(item):
-	var dialog = _rename_dialog_scene.instantiate()
+	var dialog = _edit_dialog_scene.instantiate()
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.init(item.name, item.version_hint)
-	dialog.editor_renamed.connect(func(new_name, version_hint):
+	dialog.init(item.name, item.version_hint, item.is_self_contained())
+	dialog.settings_changed.connect(func(new_name, new_version_hint, new_self_contained_mode):
 		item.name = new_name
-		item.version_hint = version_hint
-		_title_label.text = item.name
+		item.version_hint = new_version_hint
+		var editor_dir = item.path.get_base_dir()
+		if new_self_contained_mode:
+			var file_to = FileAccess.open(editor_dir.path_join("._sc_"), FileAccess.WRITE)
+			file_to.store_string("")
+			file_to.close()
+		else:
+			DirAccess.remove_absolute(editor_dir.path_join("._sc_"))
+			DirAccess.remove_absolute(editor_dir.path_join("_sc_"))
+		_title_label.text = item.display_name
+		update_version_elements(item)
+		update_self_contained_marker(item)
 		edited.emit()
 	)
 
